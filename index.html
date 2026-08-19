@@ -8,8 +8,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Chart.js Engine -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <!-- SheetJS for Excel Import/Export -->
-    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- ExcelJS & FileSaver for Native Excel Generation with Embedded Images -->
+    <script src="https://cdn.jsdelivr.net/npm/exceljs@4.3.0/dist/exceljs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -60,20 +61,15 @@
                 </div>
                 <div>
                     <h1 class="font-bold text-lg sm:text-xl leading-tight">QAM Digital Audit System</h1>
-                    <p class="text-xs text-sky-400 font-medium">QAM 数字化质量与防霉稽核系统 (15大项完整标准版)</p>
+                    <p class="text-xs text-sky-400 font-medium">QAM 数字化质量与防霉稽核系统 (15大项完整版)</p>
                 </div>
             </div>
 
             <div class="flex items-center space-x-2">
                 <button onclick="exportToExcel()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1 transition shadow-sm">
                     <i class="fa-solid fa-file-excel"></i>
-                    <span class="hidden md:inline">导出 Excel</span>
+                    <span class="hidden md:inline">导出 Excel (含图片)</span>
                 </button>
-                <label class="bg-sky-600 hover:bg-sky-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1 cursor-pointer transition shadow-sm">
-                    <i class="fa-solid fa-file-import"></i>
-                    <span class="hidden md:inline">导入 Excel</span>
-                    <input type="file" id="excel-file-input" class="hidden" accept=".xlsx, .xls" onchange="importFromExcel(event)">
-                </label>
                 <button onclick="window.print()" class="bg-slate-700 hover:bg-slate-600 text-white px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1 transition shadow-sm">
                     <i class="fa-solid fa-print"></i>
                     <span class="hidden md:inline">打印报告</span>
@@ -98,19 +94,19 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div>
                     <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">工厂名称 / Factory</label>
-                    <input type="text" id="meta-factory" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm font-semibold focus:ring-2 focus:ring-sky-500 focus:outline-none" placeholder="如：鞋业一厂 / Factory A" onchange="updateMeta()">
+                    <input type="text" id="meta-factory" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm font-semibold focus:ring-2 focus:ring-sky-500 focus:outline-none" placeholder="如：鞋业一厂 / Factory A" oninput="updateMeta()">
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">稽核人员 / Auditor</label>
-                    <input type="text" id="meta-auditor" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm font-semibold focus:ring-2 focus:ring-sky-500 focus:outline-none" placeholder="输入稽核员姓名" onchange="updateMeta()">
+                    <input type="text" id="meta-auditor" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm font-semibold focus:ring-2 focus:ring-sky-500 focus:outline-none" placeholder="输入稽核员姓名" oninput="updateMeta()">
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">稽核日期 / Date</label>
-                    <input type="date" id="meta-date" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm font-semibold focus:ring-2 focus:ring-sky-500 focus:outline-none" onchange="updateMeta()">
+                    <input type="date" id="meta-date" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm font-semibold focus:ring-2 focus:ring-sky-500 focus:outline-none" oninput="updateMeta()">
                 </div>
                 <div>
                     <label class="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">稽核区域 / Area / Line</label>
-                    <input type="text" id="meta-line" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm font-semibold focus:ring-2 focus:ring-sky-500 focus:outline-none" placeholder="如：全厂综合 / Line 3" onchange="updateMeta()">
+                    <input type="text" id="meta-line" class="w-full bg-slate-50 border border-slate-300 rounded-lg px-3 py-2 text-sm font-semibold focus:ring-2 focus:ring-sky-500 focus:outline-none" placeholder="如：全厂综合 / Line 3" oninput="updateMeta()">
                 </div>
             </div>
         </section>
@@ -137,7 +133,7 @@
                         <span id="overall-score-display" class="text-5xl font-extrabold tracking-tight text-white">100.0</span>
                         <span class="text-xl font-semibold text-slate-400">%</span>
                     </div>
-                    <p class="text-xs text-slate-400 mt-1" id="score-calculation-note">包含 15 个主要稽核模块</p>
+                    <p class="text-xs text-slate-400 mt-1" id="score-calculation-note">包含 15 个主要稽核模块 (共80项)</p>
                 </div>
 
                 <!-- Mini Progress Breakdown -->
@@ -184,7 +180,6 @@
         <!-- Section Navigation Tabs & Filter Bar -->
         <section class="space-y-3 no-print">
             <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <!-- Section Tabs Bar -->
                 <div id="section-tabs-container" class="flex space-x-2 overflow-x-auto pb-2 custom-scrollbar flex-grow">
                     <!-- Dynamic Tabs Rendered Here -->
                 </div>
@@ -382,574 +377,184 @@
         // Full QAM Audit Dataset - Complete 15 Major Sections Matched Exactly to Figure 1
         const initialQAMSections = [
             {
-                id: "sec_1_1",
-                code: "1.1",
-                name: "來料倉庫(原材料 / 配件 / 大底 / 化學品)",
-                nameEn: "Incoming warehouses (Materials/Accessories/Rubber/Chemical)",
+                id: "sec_1_1", code: "1.1", name: "來料倉庫(原材料 / 配件 / 大底 / 化學品)", nameEn: "Incoming warehouses (Materials/Accessories/Rubber/Chemical)",
                 items: [
-                    {
-                        id: "qam_1_1_1", code: "1.1.1",
-                        topic: "FACILITY CONDITION",
-                        question: "Is the building well-maintained and organized?\n建築學是否得到了良好的維護和規劃？",
-                        expectation: "Yes:\n+ Well-maintained: 維護良好\n* Warehouses (Material/Accessories/Rubber/Chemical) and storage areas are clean (no mold signal, no roof/window leakage, no damaged floors and walls, windows are clean, no loose or exposed wiring).\n倉庫（材料/配件/橡膠/化學品）和儲存區域乾淨（沒有顯現黴菌，無黴跡象，沒有屋頂/窗戶漏水，沒有損壞的地板和牆壁，窗戶清潔，沒有鬆動或裸露的電線）\n* Regular 6S self-inspection & Mold prevention checking are conducted according to Mold Prevention Guideline (A0477).\n根據《防黴指南》定期進行6S自檢和防黴檢查\n* Temperature & humidity control is maintained and recorded at all times (24/7), if out of range Action Plan should be available to solve the issue.\n溫度和濕度控制始終保持登記記錄（24/7），建立數位化管理，如果超出範圍，制定行動計畫來解決問題（參考防黴指南），同時做好記錄並存檔\n+ Organized: 組織，規劃\n* Areas in the warehouse are clearly defined and identified as per the defined layout. 倉庫中的區域有明確的定義和標識\n* Guidelines for storage: 0.5m from walls, 1.5m from windows and 0.1m from floor. 儲存指南：距離牆壁0.5米，距離窗戶1.5米，距離地板0.1米\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況",
-                        weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: []
-                    },
-                    {
-                        id: "qam_1_1_2", code: "1.1.2",
-                        topic: "FACILITY CONDITION",
-                        question: "Does the building HAS adequate storage and restricted access?\n設施：建築是否有足夠的存儲空間和進出管理？",
-                        expectation: "Yes:\n+ Adequate storage: 充足的存儲空間，沒有任何物品直接接觸地面\n* No item is directly touching the ground.\n+ Restricted access: Security measures with records are implemented to prevent unauthorized access.\n進出管理：有記錄的安全管理措施，防止未經授權人的進出\n+ Safety: 安全性\n* Aisles and emergency exit routes are free and unobstructed. 通道和緊急出口路線暢通無阻\n* Items are piled up with a safe height. 物品堆放在安全的高度\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況",
-                        weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: []
-                    },
-                    {
-                        id: "qam_1_1_3", code: "1.1.3",
-                        topic: "FACILITY CONDITION",
-                        question: "Is there a designated and secured area for isolating non-conforming materials with clear tracking records?\n設施：是否有指定的安全區域用於隔離不合格材料，並有明確的追蹤記錄？",
-                        expectation: "Yes:\n+ Designated area: There's a specific space with clear signage and markings to isolate non conforming materials.\n指定區域：有一個固定的空間，帶有清晰的標牌和標記，用於隔離不合格材料\n+ Secured area: Security measures are applied in this area to prevent the unintentional use or mixing of non-conforming items with conforming ones.\n隔離區域：在該區域採取安全措施防範漂混，防止不合格品與合格品的混用或是誤用\n+ Records: The area has clear records of all non conforming items, including at least: the nature of the non conformance, quantity, status.\n記錄：該區域所有不合格項目的清楚記錄，內容項目至少包括：不合格的性質、數量、狀態\n+ Excess material: 呆滯料\n* The excess materials are visually tracked for re-inspection. Clear information when and how excess materials are re-tested or destroyed.\n對呆滯物料進行可視化管理，以便推動重檢，明確何時如何可以重新測試或者銷毀的規範\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況",
-                        weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: []
-                    },
-                    {
-                        id: "qam_1_1_4", code: "1.1.4",
-                        topic: "EXECUTION",
-                        question: "Is there a SOP (Standard Operating Procedure) to manage workflow in the warehouse following FIFO (First In First Out) flow?\n執行：是否有SOP（標準操作程序）按照先進先出流程管理倉庫中的工作流程？",
-                        expectation: "Yes:\n+ SOPs:\n* Work instructions for warehouse activities are formalized, available, and well understood by warehouse workers showing at least: Flow to receiving / releasing materials, roles & responsibilities.\n企業日常作業管理的SOP是正式且可用，並且倉庫執行的工人能很好理解，其內容至少顯示接收/發放材料的流程、作業規範及相關職責\n* SOP mentions FIFO flow and visual control process (by labels, color coding, etc.). Correct tracking stickers (or bar codes) are used and correctly filled out, including FIFO and release / rejected stickers.\nSOP提到FIFO流程和視覺化管控（通過標籤、顏色編碼等），使用正確的追蹤標籤/條形碼，添加標籤，包括先進先出和放行/接收標籤\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況",
-                        weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: []
-                    },
-                    {
-                        id: "qam_1_1_5", code: "1.1.5",
-                        topic: "EXECUTION",
-                        question: "Are items (Material/Accessories/Rubber/Chemical) in the warehouse well-protected with appropriate methods?\n執行：倉庫中的物品（材料/配件/橡膠/化學品）是否用適當的方法得到了良好的保護？",
-                        expectation: "Yes:\n+ Well-protected: 保護良好\n* All items in the Warehouse must be covered to prevent physical damage, dust, and direct sunlight. 所有物品必須覆蓋，以防止物理性的損壞，避免灰塵和陽光直射\n* For items that need temperature control (exc: Heat Transfer labels), continuous 24 / 7 real-time controls are applied with clear tracking records, and deviations are addressed with actions.\n對需要溫度控制的物品（例如：熱轉印標籤），採用連續的24 / 7溫濕度即時監控，並有明確的跟蹤記錄，有任何偏差立即採取行動予以解決\n+ Appropriate methods: Materials storage methods should follow recommendations from suppliers.\n適當的方法：材料儲存方法應遵循供應商的建議\n+ Chemical warehouses: 化學品倉庫\n* There must be an independent area, dedicated management, reject any fire, maintain a good ventilation system, security control, PPE protection.\n必須有獨立的區域，專人管理，拒絕任何火種，保持良好的通風系統，安全控制，以及個人的安全防護\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況",
-                        weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: []
-                    },
-                    {
-                        id: "qam_1_1_6", code: "1.1.6",
-                        topic: "EXECUTION",
-                        question: "Is there a solid tracking system applied to ensure the accuracy of inventory?\n執行：是否有可靠的系統來確保庫存的準確性？",
-                        expectation: "Yes:\n+ Solid tracking system: 可靠追蹤系統\n* A digitalized or manual method exists to manage the inventory quantity of all materials in the warehouse.\n存在數位化或手動方法來管理倉庫中所有材料的庫存數量\n* Physical counts are done at a defined frequency to verify inventory accuracy. 實物盤點按照規定的頻率進行，以驗證庫存的準確性\n+ Accuracy of inventory: For each item, quantity & storage location from physical counts are matched with its identification and system data with corresponding records (digital or manual).\n庫存的準確性：對於每件物品，實物盤點的數量和存儲位置與其標識和系統數據以及相應的記錄（數字或手動）需能相匹配\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況",
-                        weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: []
-                    },
-                    {
-                        id: "qam_1_1_7", code: "1.1.7",
-                        topic: "IDENTIFICATION & TRACEABILITY",
-                        question: "Are all items clearly labeled and identified for easy retrieval and traceability?\n標識/可追溯性：是否所有物品都有清晰的標籤和標識，便於查找和追蹤？",
-                        expectation: "Yes:\n+ Labeled: Visual controls such as labels, color coding, or markings are consistently applied on all items and understood by workers.\n貼標籤：目視管理，如：標籤、顏色編碼標記等應用於所有項目上，易於工人識別與理解\n+ Identification: Each item in the warehouse has identification with at least, Supplier name, item name, batch / lot number, and time of receipt.\n標籤：倉庫中的每個物品都至少有供應商名稱、物品名稱、批次/批號和收貨時間的標籤\n+ Records: Documented information is in place to track material / accessories / rubber / chemical from receiving to production releasing with Incoming QC track.\n記錄：所有材料，包含（材料/配件/橡膠/化學品）從接收到發料，記錄資訊跟蹤到位，以便於來料QC追蹤\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況",
-                        weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: []
-                    }
+                    { id: "qam_1_1_1", code: "1.1.1", topic: "FACILITY CONDITION", question: "Is the building well-maintained and organized?\n建築學是否得到了良好的維護和規劃？", expectation: "Yes:\n+ Well-maintained: 維護良好\n* Warehouses (Material/Accessories/Rubber/Chemical) and storage areas are clean (no mold signal, no roof/window leakage, no damaged floors and walls, windows are clean, no loose or exposed wiring).\n倉庫（材料/配件/橡膠/化學品）和儲存區域乾淨（沒有顯現黴菌，無黴跡象，沒有屋頂/窗戶漏水，沒有損壞的地板和牆壁，窗戶清潔，沒有鬆動或裸露的電線）\n* Regular 6S self-inspection & Mold prevention checking are conducted according to Mold Prevention Guideline (A0477).\n根據《防黴指南》定期進行6S自檢和防黴檢查\n* Temperature & humidity control is maintained and recorded at all times (24/7), if out of range Action Plan should be available to solve the issue.\n溫度和濕度控制始終保持登記記錄（24/7），建立數位化管理，如果超出範圍，制定行動計畫來解決問題（參考防黴指南），同時做好記錄並存檔\n+ Organized: 組織，規劃\n* Areas in the warehouse are clearly defined and identified as per the defined layout. 倉庫中的區域有明確的定義和標識\n* Guidelines for storage: 0.5m from walls, 1.5m from windows and 0.1m from floor. 儲存指南：距離牆壁0.5米，距離窗戶1.5米，距離地板0.1米\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_1_1_2", code: "1.1.2", topic: "FACILITY CONDITION", question: "Does the building HAS adequate storage and restricted access?\n設施：建築是否有足夠的存儲空間和進出管理？", expectation: "Yes:\n+ Adequate storage: 充足的存儲空間，沒有任何物品直接接觸地面\n* No item is directly touching the ground.\n+ Restricted access: Security measures with records are implemented to prevent unauthorized access.\n進出管理：有記錄的安全管理措施，防止未經授權人的進出\n+ Safety: 安全性\n* Aisles and emergency exit routes are free and unobstructed. 通道和緊急出口路線暢通無阻\n* Items are piled up with a safe height. 物品堆放在安全的高度\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_1_1_3", code: "1.1.3", topic: "FACILITY CONDITION", question: "Is there a designated and secured area for isolating non-conforming materials with clear tracking records?\n設施：是否有指定的安全區域用於隔離不合格材料，並有明確的追蹤記錄？", expectation: "Yes:\n+ Designated area: There's a specific space with clear signage and markings to isolate non conforming materials.\n指定區域：有一個固定的空間，帶有清晰的標牌和標記，用於隔離不合格材料\n+ Secured area: Security measures are applied in this area to prevent the unintentional use or mixing of non-conforming items with conforming ones.\n隔離區域：在該區域採取安全措施防範漂混，防止不合格品與合格品的混用或是誤用\n+ Records: The area has clear records of all non conforming items, including at least: the nature of the non conformance, quantity, status.\n記錄：該區域所有不合格項目的清楚記錄，內容項目至少包括：不合格的性質、數量、狀態\n+ Excess material: 呆滯料\n* The excess materials are visually tracked for re-inspection. Clear information when and how excess materials are re-tested or destroyed.\n對呆滯物料進行可視化管理，以便推動重檢，明確何時如何可以重新測試或者銷毀的規範\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_1_1_4", code: "1.1.4", topic: "EXECUTION", question: "Is there a SOP (Standard Operating Procedure) to manage workflow in the warehouse following FIFO (First In First Out) flow?\n執行：是否有SOP（標準操作程序）按照先進先出流程管理倉庫中的工作流程？", expectation: "Yes:\n+ SOPs:\n* Work instructions for warehouse activities are formalized, available, and well understood by warehouse workers showing at least: Flow to receiving / releasing materials, roles & responsibilities.\n企業日常作業管理的SOP是正式且可用，並且倉庫執行的工人能很好理解，其內容至少顯示接收/發放材料的流程、作業規範及相關職責\n* SOP mentions FIFO flow and visual control process (by labels, color coding, etc.). Correct tracking stickers (or bar codes) are used and correctly filled out, including FIFO and release / rejected stickers.\nSOP提到FIFO流程和視覺化管控（通過標籤、顏色編碼等），使用正確的追蹤標籤/條形碼，添加標籤，包括先進先出和放行/接收標籤\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_1_1_5", code: "1.1.5", topic: "EXECUTION", question: "Are items (Material/Accessories/Rubber/Chemical) in the warehouse well-protected with appropriate methods?\n執行：倉庫中的物品（材料/配件/橡膠/化學品）是否用適當的方法得到了良好的保護？", expectation: "Yes:\n+ Well-protected: 保護良好\n* All items in the Warehouse must be covered to prevent physical damage, dust, and direct sunlight. 所有物品必須覆蓋，以防止物理性的損壞，避免灰塵和陽光直射\n* For items that need temperature control (exc: Heat Transfer labels), continuous 24 / 7 real-time controls are applied with clear tracking records, and deviations are addressed with actions.\n對需要溫度控制的物品（例如：熱轉印標籤），採用連續的24 / 7溫濕度即時監控，並有明確的跟蹤記錄，有任何偏差立即採取行動予以解決\n+ Appropriate methods: Materials storage methods should follow recommendations from suppliers.\n適當的方法：材料儲存方法應遵循供應商的建議\n+ Chemical warehouses: 化學品倉庫\n* There must be an independent area, dedicated management, reject any fire, maintain a good ventilation system, security control, PPE protection.\n必須有獨立的區域，專人管理，拒絕任何火種，保持良好的通風系統，安全控制，以及個人的安全防護\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_1_1_6", code: "1.1.6", topic: "EXECUTION", question: "Is there a solid tracking system applied to ensure the accuracy of inventory?\n執行：是否有可靠的系統來確保庫存的準確性？", expectation: "Yes:\n+ Solid tracking system: 可靠追蹤系統\n* A digitalized or manual method exists to manage the inventory quantity of all materials in the warehouse.\n存在數位化或手動方法來管理倉庫中所有材料的庫存數量\n* Physical counts are done at a defined frequency to verify inventory accuracy. 實物盤點按照規定的頻率進行，以驗證庫存的準確性\n+ Accuracy of inventory: For each item, quantity & storage location from physical counts are matched with its identification and system data with corresponding records (digital or manual).\n庫存的準確性：對於每件物品，實物盤點的數量和存儲位置與其標識和系統數據以及相應的記錄（數字或手動）需能相匹配\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_1_1_7", code: "1.1.7", topic: "IDENTIFICATION & TRACEABILITY", question: "Are all items clearly labeled and identified for easy retrieval and traceability?\n標識/可追溯性：是否所有物品都有清晰的標籤和標識，便於查找和追蹤？", expectation: "Yes:\n+ Labeled: Visual controls such as labels, color coding, or markings are consistently applied on all items and understood by workers.\n貼標籤：目視管理，如：標籤、顏色編碼標記等應用於所有項目上，易於工人識別與理解\n+ Identification: Each item in the warehouse has identification with at least, Supplier name, item name, batch / lot number, and time of receipt.\n標籤：倉庫中的每個物品都至少有供應商名稱、物品名稱、批次/批號和收貨時間的標籤\n+ Records: Documented information is in place to track material / accessories / rubber / chemical from receiving to production releasing with Incoming QC track.\n記錄：所有材料，包含（材料/配件/橡膠/化學品）從接收到發料，記錄資訊跟蹤到位，以便於來料QC追蹤\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] }
                 ]
             },
             {
-                id: "sec_1_2",
-                code: "1.2",
-                name: "來料倉庫 - 檢驗",
-                nameEn: "Incoming warehouses - Inspection",
+                id: "sec_1_2", code: "1.2", name: "來料倉庫 - 檢驗", nameEn: "Incoming warehouses - Inspection",
                 items: [
-                    {
-                        id: "qam_1_2_1", code: "1.2.1",
-                        topic: "FACILITY CONDITION",
-                        question: "Is the inspection area well-maintained and organized with adequate lighting?\n設施：檢查區域是否得到了良好的維護和規劃，並有足夠的照明？",
-                        expectation: "Yes:\n+ Well-maintained: 進貨檢查區域乾淨（沒有出現黴菌，無黴跡象，沒有屋頂/窗戶漏水，沒有損壞的地板和牆壁，窗戶清潔，沒有鬆動或裸露的電線）\n+ Organized: Floor markings and signage are used to define areas for Passed / Failed / Awaiting inspection materials.\n組織規劃：地板標記和牌示用於定義 通過 / 待檢 / 等待檢查材料的區域\n+ Adequate lighting: Min 750 Lux. 充足的照明：最低 750 Lux\n+ Quality of Control Measures: CTQ品質管控措施\n* Is the CTQ control measure created, that is comprehensive with specific measures, clear actions and detailed steps define, ensuring: (Scalable and Consistent method/control/impact of operation or product). CTQ 控制措施是否建立？涵蓋是否全面，包含具體措施，明確的操作和詳細的步驟定義，以確保：具有可擴展性和一致性的方法/控制措施/對生產或產品質量的影響\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況",
-                        weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: []
-                    },
-                    {
-                        id: "qam_1_2_2", code: "1.2.2",
-                        topic: "EXECUTION",
-                        question: "Are the incoming inspection activities properly carried out at the workstation?\n執行：是否有在工作台上做主要的進料檢驗事項？",
-                        expectation: "Yes:\n+ Inspection procedures: 流程檢查\n* Approved documents showing instructions of incoming inspection (including incoming lab test), including at least: full inspection criteria & standards for different types of materials, Sampling rules, Inspection Steps, Reporting, Handling of non-conformities.\n目前用來檢驗的相關檔可靠（材料來樣確認），需求項目內容包含：不同類型材料的完整檢驗標準、抽樣規則、檢驗步驟、報告、不合格品處理\n* Defective materials are identified by a color-coding system. 不合格材料可通過顏色系統來進行識別\n* Content of the documents aligned with adidas requirements (if any). 相關的檔內容是否符合adidas要求的管理內容\n+ Accessibility to CTQ Control Measures: CTQ控制措施的可訪問性\n* Do T1 team (all departments impacted) and T1 quality have easy access to CTQ documents, allowing information to be provided without difficulty on the production line? 生產團隊是否有途徑能獲取CTQ文件，使能消除障礙在生產線上提供所需資訊？\n* Do T1 have any digital internal system (or platform or share folder) to enable efficiency access to all CTQ relates (e.g.: soft file of CTQ model, risk level ,control measure )? 生產團隊是否有任何數位化內控系統（或平台、共享文件夾），以實現高效存取所有CTQ相關信息（例如：CTQ的電子文件，風險等級、控制措施）的高效存取？\n+ Control measure execution at department: 部門內控制措施的執行\n* Is there training conducted to ensure that technicians/operators/supervisors etc are all adequately informed and able to execute on the agreed/required control measures? 是否開展了培訓，以確保技術人員/操作人員/主管等所有相關人員均已充分理解並能執行既定的/要求的控制措施？\n+ Properly carried out: 正確執行\n* QCs understand the procedure content & can demonstrate by practice. QC瞭解作業指導書的內容，能通過實際操作進行演示\n* Escalation exists in case of non-conformities (when over limits). 出現不合格情況時（超過接收標準），是否及時向上級呈報\n+ Moisture control: 含水率檢測\n* Test is implemented in the incoming materials, with clear implementation specifications and testing standards, including data records and failure handling. 對來料進行含水率測試，有明確的實施規範和測試標準，包括數據記錄和不合格品處理\n+ Metal Management: 金屬管理\n* Material metal detection: Whether materials such as bottom outsole or subcon upper have been inspected by a metal detector. 大底、外發的鞋面是否經過金屬檢測\n* Warehouse metal management: Metal tool management. There should be no additional metal on the raw materials and their packaging, such as staples, metal paper clips, drawing pins, pins, or other similar metal items that could contaminate fabrics.\n倉庫金屬管理：金屬工具管理，原材料及其包裝上不應有額外的金屬，如訂書針，金屬紙夾、圖釘、大頭針或其他可能污染織物的類似金屬\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況",
-                        weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: []
-                    },
-                    {
-                        id: "qam_1_2_3", code: "1.2.3",
-                        topic: "INSPECTION",
-                        question: "Are records of incoming inspections available and retained for traceability?\n記錄：是否有進料檢驗記錄以供追溯？",
-                        expectation: "Yes:\n+ Records: 記錄\n* Incoming inspection results are documented, including any deviations or non-conformities. 檢驗記錄的留存，包括任何偏差或不符合項的結果\n* Records are retained for at least 2 years. 記錄至少保留 2 年\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況",
-                        weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: []
-                    },
-                    {
-                        id: "qam_1_2_4", code: "1.2.4",
-                        topic: "MACHINES/TOOLS",
-                        question: "Are machines and tools used for incoming inspection in good condition with updated calibration & maintenance statuses?\n機器/工具：用於進料檢驗的設備和工具是否狀態良好，包含最新的校準和維護？",
-                        expectation: "Yes:\n+ Good condition: 狀況良好\n* Inspection machines and tools are clean with no visible damage, work properly. 檢查機器和工具清潔，無無顯損壞，工作正常\n* No malfunction is observed. 未觀察到有故障情況\n+ Updated calibration: Machines have valid calibration status with stamp / label on. Certificates might be provided upon inspectors' requests.\n更新的校準：機器具有有效的校準狀態，也帶有印章/標籤，可根據檢驗員的要求提供證書\n+ Maintenance: Machines are maintained at a defined frequency with a clear record. 維護：機器按照規定的頻率進行維護，是否有相應的記錄\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況",
-                        weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: []
-                    },
-                    {
-                        id: "qam_1_2_5", code: "1.2.5",
-                        topic: "INSPECTION",
-                        question: "For materials that need incoming lab tests (eg Heat Transfers, printing...), is the testing sampling & results well-managed?\n檢驗：對於需要實驗室測試的材料（如熱轉印，印刷等），測試抽樣和結果是否有良好的管理？",
-                        expectation: "Yes:\n+ Incoming Lab Test Sampling: 來料實驗室測試取樣\n* A procedure is available, mentioning: sampling size, sampling frequency with clear roles & responsibilities.\n是否有一個明確的取樣流程，其中包括：取樣規模，頻率，明確的規矩及工作職責\n* Related people (QCs / workers) apply the process and can demonstrate such with clear records. 相關人員（QC / 工作人員）可遵守該流程，並可以通過清晰的記錄來證明\n+ Results are well-managed: 測試結果管理良好\n* Test results are taken into consideration upon releasing materials to production. 測試結果可作為發料登錄的依據\n* All failed-testing materials will be blocked and treated as non-conformities.\n所有測試不合格的瑕疵材料將被阻止發往生產線，作不合格品進行處理\n+ Visual management at production line & work station: CTQ檢驗工作站的目視化管理\n* If material is one of CTQ, there is clear signage when inspect SCPR material, displaying the risk level as low, medium, or high?\n如果是原料是 CTQ 其中一項，那在檢驗 SCPR 產品的原料時是否有清楚的標示，展示風險等級（低、中、高）？\n* Is the CTQ process at the workstation visually flagged with clear identification of the 7 CTQ risks and their risk levels and clear enough to be identify by either factory or adidas? 工作站的 CTQ 流程是否带有可視化標示，清楚識別與adidas一致的 7 個 CTQ 風險及其風險等級，且足夠清晰能讓工廠和 adidas 雙方辨識？\n* For flagged CTQ processes, are the control measures translated into detailed SOPs for each process, clearly written in both the local language and English to ensure ease of follow-up for both the factory and adidas? 對於標註的 CTQ 流程，相關的控制措施是否已轉化為每個工序的詳細 SOP？這些 SOP 是否清楚地使用當地語言和英語書寫，以策「工廠」和「品牌」雙方遵循和追蹤？\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況",
-                        weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: []
-                    },
-                    {
-                        id: "qam_1_2_6", code: "1.2.6",
-                        topic: "INSPECTION",
-                        question: "Is the process to manage non-conforming material available and well-applied by relevant people?\n檢驗：處理不合格材料的流程是否落實，並由相關人員良好的執行？",
-                        expectation: "Yes:\n+ Process to handle non-conforming materials (found in both appearance inspection & testing):\n處理不合格材料的流程（在外貌檢查或測試中發現）：\n* Process is documented and available at work station, including at least: Material issues identification, Escalation flow, Reaction plans, showing action plans of factory for non-conforming materials (Ex: Separation, Defect verification, Return to T2s, Destruction, etc.)\n核可的工作指導書顯貼在工作台上，內容項目包括：材料問題識別、上報流程、改善計畫，工廠製定不合格材料的行動計畫（例如：隔離、不良驗證、退回T2、銷毀...等）\n* Process has clear roles and responsibilities defined for related departments (warehouse, QC, managers, merchandisers, etc.)\n不合格處理的流程明確了相關部門的工作職責和職務，內容包含相關部門（倉庫、QC、上級主管、採購...等）\n+ Well-applied: All related people in the warehouse understand and can demonstrate with clear records. 執行良好：倉庫所有相關人員理解並能清楚能登記記錄以及呈報\n+ CTQ Control Measures - execution monitoring: CTQ 控制措施 - 執行監測\n* Are the 7 CTQ risks identified being monitored and tracked in production? 已識別的 7 項 CTQ 風險是否在生產中得到監督和追蹤？\n* Are the QC findings entered into the T1 quality system and monitored? QC 的檢驗結果是否錄入 T1 品質系統並進行監督？\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況",
-                        weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: []
-                    },
-                    {
-                        id: "qam_1_2_7", code: "1.2.7",
-                        topic: "ACTION PLAN",
-                        question: "Do KPIs/Targets for material defects are set and reviewed regularly with clear action plans?\n改善行動：是否制定定期審查不良材料的KPI/目標，並有清晰的行動計畫？",
-                        expectation: "Yes:\n+ KPIs for material defects: 材料不良 KPI，有明確的指標政策以及規管等的審核行動\n* Defect limits for different materials are set. 不同材料的不良率設置\n* Factories define a frequency to review performance (ex: weekly, monthly, quarterly, etc.). 工廠設定有審查的檢測及審查（週、月、季檢核等）\n+ Action plans: In case any material defect exceeds the defined limits, the following need to be evident:\n行動計畫：如果材料瑕疵超過了設定的限度，包括以下內容：\n* Actions are taken by relevant people to minimize the impact on production. 相關人員採取行動，減少對生產的影響\n* Feedback process to T2 / Subcontractors / suppliers are carried out and followed up for continuous improvement. 對 T2 / 分包商 / 供應商進行反饋，並進行跟進以持續改進\n+ Warehouse/Supervisor awareness of CTQ risk analysis and control measure: 嚟材料 / 主管人員對 CTQ 風險分析和控制措施的認知情況\n* CTQ documents information with all relevant details cascade to relevant T1 teams? 包含所有相關詳情的分發至所有相關的 T1 團隊？\n* Production supervisor aware & understand the CTQ risks and control measures for the specific model in production?\n原材料主管或管理層是否理解正在生產的特定機型安的 CTQ 風險及其控制措施？\n+ Defect Rate Tracking & Control measure adjustment: CTQ 不良率追蹤與控制措施調整\n* Is the defect trend reviewed by the supervisor/quality team in a timely manner to ensure prompt action? 主管/品管團隊是否及時審查不良趨勢，以確保採取迅速行動？\n* Are further adjustments in control measures being made when the defined control measure is proven inefficient? 當既定的控制措施被證明無效時，是否在進一步調整？\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況",
-                        weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: []
-                    }
+                    { id: "qam_1_2_1", code: "1.2.1", topic: "FACILITY CONDITION", question: "Is the inspection area well-maintained and organized with adequate lighting?\n設施：檢查區域是否得到了良好的維護和規劃，並有足夠的照明？", expectation: "Yes:\n+ Well-maintained: 進貨檢查區域乾淨（沒有出現黴菌，無黴跡象，沒有屋頂/窗戶漏水，沒有損壞的地板和牆壁，窗戶清潔，沒有鬆動或裸露的電線）\n+ Organized: Floor markings and signage are used to define areas for Passed / Failed / Awaiting inspection materials.\n組織規劃：地板標記和牌示用於定義 通過 / 待檢 / 等待檢查材料的區域\n+ Adequate lighting: Min 750 Lux. 充足的照明：最低 750 Lux\n+ Quality of Control Measures: CTQ品質管控措施", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_1_2_2", code: "1.2.2", topic: "EXECUTION", question: "Are the incoming inspection activities properly carried out at the workstation?\n執行：是否有在工作台上做主要的進料檢驗事項？", expectation: "Yes:\n+ Inspection procedures: 流程檢查\n+ Moisture control: 含水率檢測\n+ Metal Management: 金屬管理", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_1_2_3", code: "1.2.3", topic: "INSPECTION", question: "Are records of incoming inspections available and retained for traceability?\n記錄：是否有進料檢驗記錄以供追溯？", expectation: "Yes:\n+ Records retained for at least 2 years. 記錄至少保留 2 年", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_1_2_4", code: "1.2.4", topic: "MACHINES/TOOLS", question: "Are machines and tools used for incoming inspection in good condition with updated calibration & maintenance statuses?\n機器/工具：用於進料檢驗的設備和工具是否狀態良好，包含最新的校準和維護？", expectation: "Yes:\n+ Calibration and PM log updated.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_1_2_5", code: "1.2.5", topic: "INSPECTION", question: "For materials that need incoming lab tests (eg Heat Transfers, printing...), is the testing sampling & results well-managed?\n檢驗：對於需要實驗室測試的材料（如熱轉印，印刷等），測試抽樣和結果是否有良好的管理？", expectation: "Yes:\n+ Lab test sampling & results well recorded.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_1_2_6", code: "1.2.6", topic: "INSPECTION", question: "Is the process to manage non-conforming material available and well-applied by relevant people?\n檢驗：處理不合格材料的流程是否落實，並由相關人員良好的執行？", expectation: "Yes:\n+ Escalation, reaction plan, and isolation active.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_1_2_7", code: "1.2.7", topic: "ACTION PLAN", question: "Do KPIs/Targets for material defects are set and reviewed regularly with clear action plans?\n改善行動：是否制定定期審查不良材料的KPI/目標，並有清晰的行動計畫？", expectation: "Yes:\n+ Defect limits reviewed and suppliers feedback followed.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] }
                 ]
             },
             {
-                id: "sec_2_1",
-                code: "2.1",
-                name: "部件 / 裁斷",
-                nameEn: "Component Cutting",
+                id: "sec_2_1", code: "2.1", name: "部件 / 裁斷", nameEn: "Component Cutting",
                 items: [
-                    {
-                        id: "qam_2_1_1", code: "2.1.1",
-                        topic: "FACILITY CONDITION",
-                        question: "Are the cutting areas (including all types of cutting, spreading, relaxing) well-maintained and organized with an adequate space?\n設備條件：裁斷區域（包含所有類型的裁斷、鋪黃、放鬆）是否有良好的維護和規劃並有足夠的空間？",
-                        expectation: "Yes:\n+ Well-maintained: 維護良好\n* The area is clean (no mold signal, no roof / window leakage, no damaged floors and walls, windows are clean, no loose or exposed wiring).\n裁斷區域乾淨（沒有出現黴菌，無黴跡象，沒有屋頂/窗戶漏水，沒有損壞的地板和牆壁，窗戶清潔，沒有鬆動或裸露的電線）\n+ Organized: 組織規劃\n* Cutting materials and cutting tools are stored systematically. 裁斷材料與裁斷工具有系統地規劃儲存\n* No materials are out on the ground. 地面上沒有放置任何材料\n* There's a designated area to store Markers / Patterns / tools. 有一個指定區域來儲存標記/板模/工具\n* Waste is appropriately segregated, labeled, and disposed in designated containers. 廢料被適當地分類、貼上標籤、並在指定的容器中進行處理\n* Guidelines for material storage: 0.5m from walls, 1.5m from windows, and 0.1m from floor. 材料儲存指南：距離牆壁0.5米，距離窗戶1.5米，距離地板0.1米\n+ Adequate lighting: Min 750-1000 Lux. 充足的照明：最低 750-1000 Lux\n+ Safety: Emergency exit routes are free and unobstructed. 安全：出口路線暢通\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況",
-                        weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: []
-                    },
-                    {
-                        id: "qam_2_1_2", code: "2.1.2",
-                        topic: "EXECUTION",
-                        question: "Are there cutting/relaxing/spreading procedures carried out at the workstation with clear records?\n執行：工作台上是否有明確的裁斷/放鬆/鋪黃程序及記錄？",
-                        expectation: "Yes:\n+ Cutting / Spreading / Relaxing procedures (SOPs) 裁斷 / 鋪黃 / 放鬆程式 (拉料方式) SOP\n* The document is available at the workstations and easily accessed. 文件放置在工作台上易於尋找，便於認真查看\n* The content includes at least: Cutting / Relaxing / Spreading method, machine settings, Number of cutting layers for spreading, Cutting accuracy, And any special care for natural raw material (if needed). 內容至少包括：裁斷/放鬆/鋪黃方法、機器設置、鋪黃的裁斷層數、裁斷精度、以及天然原材料的特殊護理指導（如果需要）\n+ Records: 記錄\n* Workers understand the content and can demonstrate by practice. 工人理解內容，能通過實際操作進行演示\n* Operating records are retained for at least 1 year. 操作記錄至少保留 1 年\n+ Quality of Control Measures: CTQ品質管控措施\n* Is the CTQ control measure created, that is comprehensive with specific measures, clear actions and detailed steps define, ensuring: (Scalable and Consistent method/control/impact of operation or product). CTQ 控制措施是否建立？涵蓋是否全面，包含具體措施，明確的操作和詳細的步驟定義，以確保：具有可擴展性和一致性的方法/控制措施/對生產或產品質量的影響\n+ Safety: 安全性\n* In case of manual cutting, workers must wear PPE (e.g. metal gloves). 在手動裁斷的情況下，工人必須佩戴個人防護裝備（如金屬手套）\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況",
-                        weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: []
-                    },
-                    {
-                        id: "qam_2_1_3", code: "2.1.3",
-                        topic: "MACHINES/TOOLS",
-                        question: "Is the working area well-equipped with machines that are configured with specified parameters?\n機器/工具：工作區域是否配備有專門配置的參數的機器？",
-                        expectation: "Yes:\n+ Well-equipped: 設備齊全\n* The cutting area is equipped with adequate cutting / spreading / relaxing machines. 裁斷區域配備了充足的裁斷/鋪黃/放鬆機器\n* All machines used in the process must have their unique IDs. 所有在工序中使用的機器都必須有其唯一的ID\n* All machines are maintained at a defined frequency with clear maintenance records. 所有機器都按照規定的頻率進行維護，有明確的維護記錄\n* Malfunctioning machines are identified and isolated. 故障機器被識別並隔離\n+ Configuration: Cutting / Spreading / Relaxing machines are configured with specified parameters following the defined SOPs. 配置：裁斷/鋪黃/放鬆機器按照規定的SOP配置指定的參數\n+ Accessibility to CTQ Control Measures: CTQ控制措施的可訪問性\n* Do T1 team (all departments impacted) and T1 quality have easy access to CTQ documents, allowing information to be provided without difficulty on the production line? 生產團隊是否有途徑能獲取CTQ文件，使能消除障礙在生產線上提供所需資訊？\n* Do T1 have any digital internal system (or platform or share folder) to enable efficiency access to all CTQ relates (e.g.: soft file of CTQ model, risk level, control measure)? 生產團隊是否有任何數位化內控系統（或平台、共享文件夾），以實現高效存取所有CTQ相關信息（例如：CTQ的電子文件，風險等級、控制措施）的高效存取？\n+ Control measure execution at department: 部門內控制措施的執行\n* Is there training conducted to ensure that technicians/operators/supervisors etc are all adequately informed and able to execute on the agreed/required control measures? 是否開展了培訓，以確保技術人員/操作人員/主管等所有相關人員均已充分理解並能執行既定的/要求的控制措施？\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況",
-                        weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: []
-                    },
-                    {
-                        id: "qam_2_1_4", code: "2.1.4",
-                        topic: "MACHINES/TOOLS",
-                        question: "Are the cutting tools (dies/stamper/plates/marker/pattern/etc.) maintained in good condition?\n機器/工具：裁斷工具（刀模/印章/壓板/劃線/樣板等）是否保持良好狀態？",
-                        expectation: "Yes:\n+ Good condition: 狀況良好\n* All tools are stored in a neat manner with clear identification. 所有工具都整齊存放，有明確的標識\n* All tools are maintained at a defined frequency with clear maintenance records. 所有工具都按照規定的頻率進行維護，有明確的維護記錄\n* Malfunctioning tools are identified and isolated. 損壞的工具被識別並隔離\n* Cutting dies are clean, sharp, with no damage, and maintained at a defined frequency.\n裁斷刀模清潔、鋒利、無損壞，並按照規定的頻率進行維護\n* Cutting stamper / plates (if any) must have pattern changing frequency. 裁斷印章/壓板（如有）必須有更換圖案的頻率\n* A good quality marker is used and the pattern arrangement affects with the stretching direction of the material to avoid potential quality issues (if applicable).\n使用高品質的劃線筆，劃線排版影響材料的拉伸方向，以避免潛在的品質問題（如適用）\n+ Critical to Process: 關鍵流程\n* SOPs and equipment at CTQ workstations design to ensure repeatability/reproducibility to safeguard consistent method/process? 位於 CTQ 工作站的SOP和設備設計是否旨在確保重複性/再現性，以保障方法/工藝的一致性？\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況",
-                        weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: []
-                    },
-                    {
-                        id: "qam_2_1_5", code: "2.1.5",
-                        topic: "IDENTIFICATION & TRACEABILITY",
-                        question: "Are input & output in the cutting area clearly labeled for visual control?\n標識及可追溯性：裁斷區域的入料和出料是否有清晰標籤，以便進行視覺化管理？",
-                        expectation: "Yes:\n+ Labeled for input materials: A label showing clear information, such as Material type, batch / lot number, and any other relevant identifiers.\n輸入材料標籤：顯示清晰信息的標籤，如材料類型、批次/批號以及任何其他相關標識符\n+ Labeled for output materials: A label or stamp showing clear information, such as: Style name / number, size, quantity, quality status, etc.\n輸出材料標籤：顯示清晰信息的標籤或印章，如：型體名稱/編號、尺寸、數量、品質狀態等\n+ Such visual controls (ex: labels, color coding, or markings) are consistently applied. 目視化管理（例如：標籤、顏色編碼或標記）始終如一地應用\n+ Visual management at production line & work station: CTQ檢驗工作站的目視化管理\n* Is there clear signage on all production lines producing SCPR products, displaying the risk level as low, medium, or high?\n所有生產 SCPR 產品的生產線是否有清楚的標示，展示風險等級（低、中、高）？\n* Is the CTQ process at the workstation visually flagged with clear identification of the 7 CTQ risks and their risk levels and clear enough to be identify by either factory or adidas? 工作站的 CTQ 流程是否带有可視化標示，清楚識別與adidas一致的 7 個 CTQ 風險及其風險等級，且足夠清晰能讓工廠和 adidas 雙方辨識？\n* For flagged CTQ processes, are the control measures translated into detailed SOPs for each process, clearly written in both the local language and English to ensure ease of follow-up for both the factory and adidas? 對於標註的 CTQ 流程，相關的控制措施是否已轉化為每個工序的詳細 SOP？這些 SOP 是否清楚地使用當地語言和英語書寫，以策「工廠」和「品牌」雙方遵循和追蹤？\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況",
-                        weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: []
-                    },
-                    {
-                        id: "qam_2_1_6", code: "2.1.6",
-                        topic: "INSPECTION",
-                        question: "Are cutting inspection activities carried out according to the specified procedure?\n檢驗：裁斷檢驗是否合乎裁斷檢驗規範合行？",
-                        expectation: "Yes:\n+ Inspection procedures: 檢驗流程\n* An approved document showing instructions of for cutting inspection, including at least: full inspection criteria & standards for cutting accuracy, Sampling rules, Inspection Steps, Reporting, Handling of non-conformities. 核可的檔顯示裁斷檢驗的說明，內容包括：完整的檢驗標準和規範、抽樣規則、檢驗步驟、報告、不合格品處理\n* Content of the documents aligned with adidas requirements (if any). 包含 adidas 要求的內容（如有）\n* Non-conforming pcs are marked and isolated. 不合格物件被標記和隔離\n* Cutting QCs understand the procedure content & can demonstrate by practice. 裁斷 QC 理解工作指導書內容，能通過實際操作進行演示\n* In case defect rates exceeds the acceptable limits, documented escalation records are available. 如果不良率超過可接受限度，可以提供書面呈報記錄\n+ CTQ Control Measures - execution monitoring: CTQ 控制措施 - 執行監測\n* Are the 7 CTQ risks identified being monitored and tracked in production? 已識別的 7 項 CTQ 風險是否在生產中得到監督和追蹤？\n* Are the QC findings entered into the T1 quality system and monitored? QC 的檢驗結果是否錄入 T1 品質系統並進行監督？\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況",
-                        weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: []
-                    },
-                    {
-                        id: "qam_2_1_7", code: "2.1.7",
-                        topic: "INSPECTION",
-                        question: "Are records of cutting inspections available and retained for traceability?\n檢驗：是否有裁斷檢驗的記錄並存檔以供追溯？",
-                        expectation: "Yes:\n+ Clear records: 清晰記錄\n* Cutting inspection results are documented in time, including any deviations or non-conformities. 及時記錄檢驗結果，包括任何偏差或不合格情況\n* Records and defect rates are shared with operation team at a defined frequency (ex: daily, by shift). 每天或每班與操作團隊共享記錄和不良率\n* Inspection reports are retained for at least 1 year. 檢驗報告至少保留 1 年\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況",
-                        weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: []
-                    },
-                    {
-                        id: "qam_2_1_8", code: "2.1.8",
-                        topic: "ACTION PLAN",
-                        question: "In case cutting defects exceed the defined limits, are action plans well-managed by the cutting leaders?\n改善行動：如裁斷瑕疵超過排定的比率，單位主管是否能做好執行和改善計畫？",
-                        expectation: "Yes:\n+ Action plans: Must include immediate actions, corrective actions, and preventive actions. 改善計畫：必須包含立即行動、糾正行動和預防行動\n+ Well-managed: 管理良好\n* Cutting leaders are aware of quality performance (KPIs, main quality issues) in their areas. 裁斷主管瞭解其區域的品質績效（KPI、主要品質問題）\n* In case cutting defect exceeds the defined limits or in case of any issues feedback by cutting QCs, action plans are properly implemented and followed up by the cutting leaders.\n如裁斷瑕疵超過設定的限度或裁斷QC反饋任何問題，裁斷主管會妥善實施和跟進改善計畫\n* The improvement is proven via clear tracking records. 通過明確的追蹤記錄證明改善成果\n+ Production/Supervisor awareness of CTQ risk analysis and control measure: 生產 / 主管人員對 CTQ 風險分析和控制措施的認知情況\n* CTQ documents information with all relevant details cascade to relevant T1 teams? 包含所有相關詳情的分發至所有相關的 T1 團隊？\n* Production supervisor aware & understand the CTQ risks and control measures for the specific model in production?\n生產主管或管理層是否理解正在生產的特定機型安的 CTQ 風險及其控制措施？\n+ Defect Rate Tracking & Control measure adjustment: CTQ 不良率追蹤與控制措施調整\n* Is the defect trend reviewed by the supervisor/quality team in a timely manner to ensure prompt action? 主管/品管團隊是否及時審查不良趨勢，以確保採取迅速行動？\n* Are further adjustments in control measures being made when the defined control measure is proven inefficient? 當既定的控制措施被證明無效時，是否在進一步調整？\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況",
-                        weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: []
-                    }
+                    { id: "qam_2_1_1", code: "2.1.1", topic: "FACILITY CONDITION", question: "Are the cutting areas well-maintained and organized with an adequate space?\n設備條件：裁斷區域是否有良好的維護和規劃並有足夠的空間？", expectation: "Yes:\n+ Clean, organized, 750-1000 Lux lighting.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_2_1_2", code: "2.1.2", topic: "EXECUTION", question: "Are there cutting/relaxing/spreading procedures carried out at the workstation with clear records?\n執行：工作台上是否有明確的裁斷/放鬆/鋪黃程序及記錄？", expectation: "Yes:\n+ SOPs posted and records kept for 1 year.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_2_1_3", code: "2.1.3", topic: "MACHINES/TOOLS", question: "Is the working area well-equipped with machines that are configured with specified parameters?\n機器/工具：工作區域是否配備有專門配置的參數的機器？", expectation: "Yes:\n+ Unique IDs on machines, PM log up-to-date.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_2_1_4", code: "2.1.4", topic: "MACHINES/TOOLS", question: "Are the cutting tools maintained in good condition?\n機器/工具：裁斷工具（刀模/印章/壓板/劃線/樣板等）是否保持良好狀態？", expectation: "Yes:\n+ Sharp, rust-free, shadow board control.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_2_1_5", code: "2.1.5", topic: "IDENTIFICATION & TRACEABILITY", question: "Are input & output in the cutting area clearly labeled for visual control?\n標識及可追溯性：裁斷區域的入料和出料是否有清晰標籤？", expectation: "Yes:\n+ Material bundle tags and identification complete.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_2_1_6", code: "2.1.6", topic: "INSPECTION", question: "Are cutting inspection activities carried out according to the specified procedure?\n檢驗：裁斷檢驗是否合乎裁斷檢驗規範合行？", expectation: "Yes:\n+ Hourly QC checks and non-conforming isolation.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_2_1_7", code: "2.1.7", topic: "INSPECTION", question: "Are records of cutting inspections available and retained for traceability?\n檢驗：是否有裁斷檢驗的記錄並存檔以供追溯？", expectation: "Yes:\n+ Reports retained for at least 1 year.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_2_1_8", code: "2.1.8", topic: "ACTION PLAN", question: "In case cutting defects exceed limits, are action plans well-managed by cutting leaders?\n改善行動：如裁斷瑕疵超過排定的比率，單位主管是否能做好執行和改善計畫？", expectation: "Yes:\n+ Action plans include immediate, corrective & preventive actions.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] }
                 ]
             },
             {
-                id: "sec_2_2",
-                code: "2.2",
-                name: "部件 | 調膠房(包括化學品管控)",
-                nameEn: "Component | Mixing room (including chemicals management)",
+                id: "sec_2_2", code: "2.2", name: "部件 | 調膠房(包括化學品管控)", nameEn: "Component | Mixing room (including chemicals management)",
                 items: [
-                    {
-                        id: "qam_2_2_1", code: "2.2.1", topic: "FACILITY CONDITION",
-                        question: "Is the working area well-maintained and organized with adequate storage and restricted access, with functional ventilation system and fire-extinguishing facility?\n設備條件：工作區域是否有良好的維護和組織，是否有足夠的儲存空間和受控管理，是否有良好的通風系統和滅火設施？",
-                        expectation: "Yes:\n+ Mixing room and storage areas are all clean (no mold signal, no roof / window leakage, no damaged floors and walls, windows are clean, no loose or exposed wiring).\n調膠房和儲存區域乾淨。（沒有黴菌信號，沒有屋頂 / 窗戶漏水，沒有損壞的地板和牆壁，窗戶清潔，沒有鬆動或裸露的電線）\n+ Functional ventilation system and fire-extinguishing facility are well installed and working well. 功能通風系統和滅火設施安裝良好，工作良好\n+ Regular 6S self-inspection are conducted monthly in according to Mold Prevention Guideline (A0477).\n根據《防黴指南》（A0477），每月定期進行 6S 自檢\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況",
-                        weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: []
-                    },
-                    {
-                        id: "qam_2_2_2", code: "2.2.2", topic: "FACILITY CONDITION",
-                        question: "Are the storage conditions for Chemicals implemented according to recommendations from suppliers?\n設備條件：化學品的儲存條件是否按照供應商的建議執行？",
-                        expectation: "Yes:\n+ Storage conditions for Chemicals are implemented according to recommendation from suppliers. 化學品的儲存條件根據供應商的建議執行\n+ A log of temperature and humidity readings is taken properly twice a day (a.m. and p.m.). Temperature in controlled from 5-35°C.\n每天兩次（上午和下午）正確記錄溫度和濕度讀數。溫度控制在 5-35°C 之間\n+ The Mixing room should be used by authorized personnel. 調膠房必須是有經過培訓的專人管理\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況",
-                        weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: []
-                    },
-                    {
-                        id: "qam_2_2_3", code: "2.2.3", topic: "EXECUTION",
-                        question: "Are all liquid chemicals stored with secondary containers, emergency devices and procedure in place in case leakage and spillage would be happened?\n執行：所有液體化學品是否有使用二級容器，應急裝置和程序在位，以防發生洩漏和溢出？",
-                        expectation: "Yes:\n+ All liquid chemicals are stored with secondary containers. 所有液體化學品都用二級容器儲存\n+ Emergency device and procedure are in place in case leakage and spillage would happen. 應急裝置和管理程式已到位，以防發生洩漏和溢出\n+ Do not install any electronic equipment inside the mixing room. 調膠房不可安裝除了電子秤以外的任何電子設備\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況",
-                        weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: []
-                    },
-                    {
-                        id: "qam_2_2_4", code: "2.2.4", topic: "IDENTIFICATION & TRACEABILITY",
-                        question: "Are all materials (including any opened chemicals and can not be exposed to the air) arranged in order and clearly labeled by the tracking stickers, following FIFO rule and not over expired dates?\n標識&可追溯性：所有材料（包括任何打開的化學品，不能暴露在空氣中）是否按順序排列，是否有相關標示貼紙貼在追蹤標籤，遵循FIFO規則，且不超過有效日期？",
-                        expectation: "Yes:\n+ All materials are arranged in order and capped to avoid the evaporation of solvents and to prevent the influence of moisture / dusts from the air.\n所有材料排列整齊並加蓋，以避免溶劑蒸發，並防止空氣中的濕氣/灰塵的影響\n+ Different chemicals should be placed separately, marked with color label for different type of chemicals.\n不同的化學品應分開放置，並用顏色標籤標註不同類型的化學品\n+ All materials clearly labeled by the tracking stickers (material information / mixing date & time / expiration date & time). Expired chemicals need systematic control.\n所有化學品材料都有清晰的追蹤標籤（材料資訊/混膠日期和時間/有效期和時間）且對過期的化學品要有一個完善的管理系統的\n+ The mixing room and chemical warehouse remaining empty container management. 對調膠房和化學品盒剩餘空的容器管理\n+ FIFO is applied to avoid being over expiration dates. (e.g. SINGLE COMPONENT CEMENTS needs to be used up within two days if opened).\n按先進先出法是為了避免過期，（例如，如果打開單組份膠水，則需要兩天內用完同時要佩服水箱 | 注明打開時間以及計畫用完時間）\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況",
-                        weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: []
-                    },
-                    {
-                        id: "qam_2_2_5", code: "2.2.5", topic: "INSPECTION",
-                        question: "Is the process controlled at defined frequency with clear tracking reports?\n檢驗：过程是否在规定的频率下控制，并有清晰的跟踪报告？",
-                        expectation: "Yes:\n+ Designated KQC regularly checks mixing room and process. 指定的 KQC 定期檢查調膠房和流程\n+ Quality reports are filled correctly and available for review. 品質報告填寫正確，可供審查\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況",
-                        weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: []
-                    },
-                    {
-                        id: "qam_2_2_6", code: "2.2.6", topic: "EXECUTION",
-                        question: "Is PPE used properly, Safety accessories (eyewash and emergency shower) is functional and well maintained?\n執行：個人防護裝備使用是否適當，安全設施（洗眼器和應急淋浴器）功能齊全，維護良好？",
-                        expectation: "Yes:\n+ All PPEs (glass / glove / mask) are available and used properly. 正確使用所有個人防護用品（眼鏡/手套/口罩）\n+ Safety accessories (eyewash and emergency shower) is 100% functional and well maintained. 安全設施（洗眼器和應急淋浴器）功能齊全，維護良好\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況",
-                        weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: []
-                    },
-                    {
-                        id: "qam_2_2_7", code: "2.2.7", topic: "EXECUTION",
-                        question: "Are mixing activities are carried out as per defined SOP/formulas with clear records?\n執行：調膠是否按照規定的SOP/配方進行？",
-                        expectation: "Yes:\n+ Materials (inks, adhesives, primers are 100% mixed in right amount, according to the approved MIXING CHART available at the workstation).\n根據工作台提供的調膠圖表，材料（油墨、膠水、藥水）以適當的量100%混合\n+ MIXING CHART is posted with all relevant information for any particular primer or adhesive (hardener %, pot life, mixing time / speed, humidity etc.).\n貼出的調配圖表中包含任何特定藥水或膠水的所有相關資訊（硬化劑%、適用期、調配時間/速度、濕度等）。濕度不一時硬化劑的比例對比輸出之配比適當調整\n+ Mixing chemical amount is referring actual production output. 調配化學品（調好的膠水或者是藥水）的數量要根據實際生產的產量去混合\n+ The management of the cement or primer that has been mixing is not used up on the day, especially at the end of the day.\n已經調好的膠水當天未用完或剩餘的管理，特別是在下午結束及一天結束的時候\n+ Records of mixing are retained for at least 1 year. 調膠記錄至少保存 1 年\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況",
-                        weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: []
-                    },
-                    {
-                        id: "qam_2_2_8", code: "2.2.8", topic: "EXECUTION",
-                        question: "Are scales well-maintained, with suitable accuracy ranges, and calibration?\n執行：電子秤是否維護良好，具有標準的精度範圍和校準？",
-                        expectation: "Yes:\n+ Small digital scales for hardeners (1-3kg; +/-0.5g accuracy) & adhesives (5-30kg; +/-10g accuracy) are available.\n可提供用於硬化劑（1-3kg；+/-0.5g精度）和膠水（5-30kg；+/-10g精度）的小型電子秤\n+ Scales are placed on a flat & firm surface and kept away from dusts / wind. 電子秤放置在平坦堅硬的表面上，遠離灰塵/風。〈建議使用防風罩〉\n+ Scales are calibrated by 3rd party and within 12 months validity certificate date. 電子秤由第三方校準，證書在有效期 12 個月內\n+ Scales are checked daily with a calibrated weight, with a documented record log. 每天用校準的砝碼對電子秤進行檢查，做好檢查記錄存檔\n+ Daily maintenance and cleaning of Cement mixing machine. 調膠器的日常維護和清潔\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況",
-                        weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: []
-                    },
-                    {
-                        id: "qam_2_2_9", code: "2.2.9", topic: "EXECUTION",
-                        question: "Are Solvent Based chemicals and Water Based Chemicals mixed separately by stationary mixer, equipped with timer and speed control, and lid to cover buckets during mixing?\n執行：油性化學品和水性化學品是否通過固定式攪拌器分別混合，攪拌器配有定時器和速度控制，攪拌時用蓋子蓋住桶？",
-                        expectation: "Yes:\n+ Solvent Based chemicals and Water Based chemicals are mixed separately by stationary mixer,\n油性化學品和水性化學品通過固定混合器分別攪拌\n+ Equipped with timer and speed control, and lid to cover buckets during mixing. (e.g. FTW - Vibrating mixer with timer is used for mixing rubber primer.)\n配有定時器和速度控制，攪拌時用蓋子蓋住桶。（例如 FTW- 筆定時器的振動攪拌器用於混合橡膠處理劑）\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況",
-                        weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: []
-                    }
+                    { id: "qam_2_2_1", code: "2.2.1", topic: "FACILITY CONDITION", question: "Is the working area well-maintained and organized with adequate storage and ventilation?\n設備條件：工作區域是否有良好的維護和組織，是否有足夠的儲存空間和受控管理？", expectation: "Yes:\n+ Clean, ventilation system functional, fire extinguisher active.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_2_2_2", code: "2.2.2", topic: "FACILITY CONDITION", question: "Are storage conditions for Chemicals implemented per supplier recommendations?\n設備條件：化學品的儲存條件是否按照供應商的建議執行？", expectation: "Yes:\n+ Temperature 5-35°C logged twice daily.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_2_2_3", code: "2.2.3", topic: "EXECUTION", question: "Are all liquid chemicals stored with secondary containers and spill kits?\n執行：所有液體化學品是否有使用二級容器，應急裝置和程序在位？", expectation: "Yes:\n+ Secondary containment and emergency procedure active.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_2_2_4", code: "2.2.4", topic: "IDENTIFICATION & TRACEABILITY", question: "Are materials clearly labeled by tracking stickers and following FIFO?\n標識&可追溯性：所有材料是否按順序排列，是否有相關標示貼紙，遵循FIFO？", expectation: "Yes:\n+ Sealed buckets, Pot life labeled, FIFO active.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_2_2_5", code: "2.2.5", topic: "INSPECTION", question: "Is the process controlled at defined frequency with clear tracking reports?\n檢驗：過程是否在規定的頻率下控制，並有清晰的跟踪報告？", expectation: "Yes:\n+ Designated KQC regularly checks mixing room.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_2_2_6", code: "2.2.6", topic: "EXECUTION", question: "Is PPE used properly and safety accessories functional?\n執行：個人防護裝備使用是否適當，安全設施功能齊全？", expectation: "Yes:\n+ Eyewash station and shower 100% functional.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_2_2_7", code: "2.2.7", topic: "EXECUTION", question: "Are mixing activities carried out as per defined SOP/formulas?\n執行：調膠是否按照規定的SOP/配方進行？", expectation: "Yes:\n+ Mixing chart posted, hardener % strictly controlled.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_2_2_8", code: "2.2.8", topic: "EXECUTION", question: "Are scales well-maintained, with calibration?\n執行：電子秤是否維護良好，具有標準的精度範圍和校準？", expectation: "Yes:\n+ Digital scales calibrated with 12 months validity.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_2_2_9", code: "2.2.9", topic: "EXECUTION", question: "Are solvent and water-based chemicals mixed separately using stationary mixers?\n執行：油性化學品和水性化學品是否通過固定式攪拌器分別混合？", expectation: "Yes:\n+ Separate mixers equipped with timers and covers.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] }
                 ]
             },
             {
-                id: "sec_2_3",
-                code: "2.3",
-                name: "部件 | 射出 / 注塑",
-                nameEn: "Component | Injection/Moulding",
+                id: "sec_2_3", code: "2.3", name: "部件 | 射出 / 注塑", nameEn: "Component | Injection/Moulding",
                 items: [
-                    { id: "qam_2_3_1", code: "2.3.1", topic: "FACILITY CONDITION", question: "Is the facility well-maintained and organized with adequate storage?\n設施條件：設施是否得到了良好的維護和規劃，是否有足夠的存儲空間？", expectation: "Yes:\n+ All areas clean & well organized (no mold signal, no roof/window leakage, no damaged floors/walls, windows clean).\n所有區域乾淨整潔（沒有黴菌信號，沒有屋頂/窗戶漏水，沒有損壞的地板和牆壁，窗戶清潔，沒有鬆動或裸露的電線）\n+ Guidelines for storage: 0.5m from walls, 1.5m from windows, 0.1m from floor. 儲存指南：距牆0.5米，距窗1.5米，距地板0.1米\n+ Regular 6S self-inspection monthly per A0477. 根據《防黴指南》（A0477），每月定期進行6S自檢\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
-                    { id: "qam_2_3_2", code: "2.3.2", topic: "EXECUTION", question: "Are there Injection/Moulding procedures carried out at the workstation with clear records?\n執行：標準工作程式是否在工作台上執行（射出/注塑），是否有明確的記錄？", expectation: "Yes:\n+ Operation SOP available at workstation & accessible.\n操作SOP在工作台上可用，並且易於查閱\n+ SOP aligned with adidas requirements (Injection, Compression, Cleaning, Trimming, Weighting, etc.).\n操作SOP內容符合adidas的最新要求，包括射出模塑、計量、壓模、清潔、修剪、稱重等\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
-                    { id: "qam_2_3_3", code: "2.3.3", topic: "EXECUTION", question: "Are the confirmation outsole samples available and well kept?\n執行：確認樣品是否可用並妥善保存？", expectation: "Yes:\n+ Confirmation outsole signed by rubber room supervisor & QIP supervisor.\n由橡膠房QIP主管和裁斷主管簽名確認\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
-                    { id: "qam_2_3_4", code: "2.3.4", topic: "IDENTIFICATION & TRACEABILITY", question: "Is the production date traceable for components?\n識別/可追溯性：生產日期是否可追溯？", expectation: "Yes:\n+ Pressing date traceable (outsoles/components with manufacturing date or marking stamp/sticker).\n部件的壓制日期是可追溯的（對於大底或部件可能無法放製造日期/標記印章/貼紙）\n+ Label on packaging bag shows PO, style, color, size, quality status.\n包裝袋上的標籤應有清晰的信息，如訂單編號、款式、顏色、尺寸、品質狀態等\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
-                    { id: "qam_2_3_5", code: "2.3.5", topic: "MACHINE/TOOLS", question: "Is the Injection/Moulding area well-equipped with all machines configured with specified parameters?\n機器/工具：注塑/射出區域是否配備有所有配置了特定參數的機器？", expectation: "Yes:\n+ Well equipped; machines configured with specified parameters per SOPs.\n工廠有射出/注塑生產使用的所有機器及唯一ID\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
-                    { id: "qam_2_3_6", code: "2.3.6", topic: "MACHINE/TOOLS", question: "Are scales, including auto-weighing equipment in good condition, calibrated?\n機器/工具：秤（包括自動稱重設備）是否狀態良好，具有合適的精度範圍和校準？", expectation: "Yes:\n+ Scales clean, calibrated by 3rd party within 12 months, checked daily.\n包含自動稱重設備，狀況良好，具有合適精度範圍\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
-                    { id: "qam_2_3_7", code: "2.3.7", topic: "INSPECTION", question: "Are inspection activities properly carried out according to specified standards?\n檢驗：檢驗活動是否按規定的標準合規的進行？", expectation: "Yes:\n+ Approved SOP for inspection with parameters (temp, pressure, time, speed checked every 2 hrs).\n核可的SOP檔可用，包含完整的檢驗標準和規範，每2小時檢查一次模溫、壓力、時間\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
-                    { id: "qam_2_3_8", code: "2.3.8", topic: "INSPECTION", question: "Are in-process testing done on basic stages?\n檢驗：是否在基本的主要階段（原料/混合粉/成品模具件）進行測試？", expectation: "Yes:\n+ In-process testing done; finished outsoles stamped OK; sharp tools controlled on shadow boards.\n在過程測試（如：原料/混合粉/大底成品件）\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
-                    { id: "qam_2_3_9", code: "2.3.9", topic: "ACTION PLAN", question: "In case of quality issues, are action plans well managed by process leaders?\n改善行動：在出現品質問題的情况下，特定過程的主管是否能做好改善行動的看管和管理？", expectation: "Yes:\n+ Action plans implemented & followed up; CTQ risks cascaded to T1 team.\n所有問題均與相應的流程主管/QC主管分享；改善計畫有明確追蹤記錄\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] }
+                    { id: "qam_2_3_1", code: "2.3.1", topic: "FACILITY CONDITION", question: "Is facility well-maintained and organized with adequate storage?\n設施條件：設施是否得到了良好的維護和規劃，是否有足夠的存儲空間？", expectation: "Yes:\n+ Clean, 6S monthly check, 0.5m/1.5m/0.1m rule.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_2_3_2", code: "2.3.2", topic: "EXECUTION", question: "Are Injection/Moulding procedures carried out with clear records?\n執行：標準工作程式是否在工作台上執行，是否有明確的記錄？", expectation: "Yes:\n+ Operation SOP posted; parameters checked.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_2_3_3", code: "2.3.3", topic: "EXECUTION", question: "Are confirmation outsole samples available and well kept?\n執行：確認樣品是否可用並妥善保存？", expectation: "Yes:\n+ Confirmation outsole signed by rubber/mould supervisor.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_2_3_4", code: "2.3.4", topic: "IDENTIFICATION & TRACEABILITY", question: "Is production date traceable for components?\n識別/可追溯性：生產日期是否可追溯？", expectation: "Yes:\n+ Manufacturing date stamp or bag tag visible.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_2_3_5", code: "2.3.5", topic: "MACHINE/TOOLS", question: "Is area well-equipped with all machines configured with specified parameters?\n機器/工具：注塑/射出區域是否配備有所有配置了特定參數的機器？", expectation: "Yes:\n+ Unique IDs on machines, SOP parameters set.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_2_3_6", code: "2.3.6", topic: "MACHINE/TOOLS", question: "Are scales and auto-weighing equipment calibrated?\n機器/工具：秤（包括自動稱重設備）是否狀態良好且已校準？", expectation: "Yes:\n+ Calibrated by 3rd party within 12 months.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_2_3_7", code: "2.3.7", topic: "INSPECTION", question: "Are inspection activities properly carried out according to specified standards?\n檢驗：檢驗活動是否按規定的標準合規的進行？", expectation: "Yes:\n+ Temp, pressure, time checked every 2 hours.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_2_3_8", code: "2.3.8", topic: "INSPECTION", question: "Are in-process testing done on basic stages?\n檢驗：是否在基本的主要階段（原料/混合粉/成品模具件）進行測試？", expectation: "Yes:\n+ In-process testing done; passed outsoles stamped.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_2_3_9", code: "2.3.9", topic: "ACTION PLAN", question: "In case of quality issues, are action plans well managed?\n改善行動：在出現品質問題的情况下，主管是否能做好改善行動？", expectation: "Yes:\n+ Action plans documented and tracked.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] }
                 ]
             },
             {
-                id: "sec_2_4",
-                code: "2.4",
-                name: "印刷 / 處理 / 加工 (印刷 / 昇華轉印 / 熱轉印 / 貼合 / 平燙 / 焊接 / 燙壓 / 空壓 / 壓花)",
-                nameEn: "Printing/Sublimation/Heat Transfer/Bonding/Etc",
+                id: "sec_2_4", code: "2.4", name: "印刷 / 處理 / 加工 (昇華轉印 / 熱轉印 / 貼合 / 壓花等)", nameEn: "Printing/Sublimation/Heat Transfer/Bonding/Etc",
                 items: [
-                    { id: "qam_2_4_1", code: "2.4.1", topic: "FACILITY CONDITION", question: "Are the process areas well-maintained and organized with adequate space?\n設備條件：區域是否得到了良好的維護和規劃，是否有足夠的空間？", expectation: "Yes:\n+ Process area clean, well-lit (750-1000 Lux), tools shadow boards used.\n乾淨，照明充足 (750-1000 Lux)，工具有獨立存放區域\nNO:\nAny non-compliance found during review.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
-                    { id: "qam_2_4_2", code: "2.4.2", topic: "EXECUTION", question: "Are the procedures/guidelines for specific processes carried out with clear records?\n執行：特定的流程/指南是否有清晰的記錄？", expectation: "Yes:\n+ Process SOPs available & followed; operator training records retained.\n作業流程指引文件可用且易於查找查閱\nNO:\nAny non-compliance found during review.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
-                    { id: "qam_2_4_3", code: "2.4.3", topic: "MACHINES/TOOLS", question: "Is the working area well-equipped with all necessary tools/machines configured with specified parameters?\n機器/工具：工作區域是否配備有必要的機器和工具？", expectation: "Yes:\n+ Machines configured with parameters per SOPs; metal tools controlled.\n設備齊全，按照指定SOP配置參數；刀具等有影子板管控\nNO:\nAny non-compliance found during review.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
-                    { id: "qam_2_4_4", code: "2.4.4", topic: "MACHINES/TOOLS", question: "Are thermal treatment processes managed with precise parameters settings and control?\n機器/工具：熱處理工序（如熱轉印、貼合、平燙、壓花等）是否進行了精確的參數設置和控制？", expectation: "Yes:\n+ Temp, pressure, time, speed calibrated and displayed on parameter cards.\n熱處理過程參數（溫度、壓力、時間、速度）按照SOP設置并定期校準\nNO:\nAny non-compliance found during review.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
-                    { id: "qam_2_4_5", code: "2.4.5", topic: "IDENTIFICATION & TRACEABILITY", question: "Are input and output in each process area clearly labeled for visual control?\n標識及可追溯性：每個工序區域的入料和出料是否有清晰標籤？", expectation: "Yes:\n+ Clear style/lot/size labels on input/output materials.\n明確的入料/出料標籤，包含型體、批次、數量、品質狀態等\nNO:\nAny non-compliance found during review.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
-                    { id: "qam_2_4_6", code: "2.4.6", topic: "INSPECTION", question: "Are inspection activities properly carried out according to defined procedure?\n檢驗：檢查活動（包括顏色評估、洗水或其他相關層面）是否按照規定的程序進行？", expectation: "Yes:\n+ QC inspects color, adhesion, position; signed confirmation samples.\n檢驗程序包含完整檢驗標準，每2小時QC檢查一次參數\nNO:\nAny non-compliance found during review.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
-                    { id: "qam_2_4_7", code: "2.4.7", topic: "INSPECTION", question: "Are records of inspection activities available and retained for traceability?\n檢驗：是否有檢驗活動的記錄並存檔以供追溯？", expectation: "Yes:\n+ Inspection reports retained for at least 1 year; shared with team.\n及時記錄檢驗結果，報告至少保留1年\nNO:\nAny non-compliance found during review.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
-                    { id: "qam_2_4_8", code: "2.4.8", topic: "INSPECTION", question: "Are Incoming Tests activities properly carried out according to defined standard?\n檢驗：來料測試（如顏色評估、洗水測試等）是否按規定程序進行？", expectation: "Yes:\n+ Incoming lab tests conducted for wash/color fastness with clear records.\n有品質管控流程，取樣規模符合規範\nNO:\nAny non-compliance found during review.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
-                    { id: "qam_2_4_9", code: "2.4.9", topic: "ACTION PLAN", question: "Are action plans, in case of quality issues, well-managed by process leaders?\n改善行動：當發生品質問題時，相關過程的主管是否能做好改善行動計畫的看管和管理？", expectation: "Yes:\n+ Immediate & corrective action plans managed by process leaders.\n改善計畫包含立即行動、糾正行動，主管及時審查不良趨勢\nNO:\nAny non-compliance found during review.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] }
+                    { id: "qam_2_4_1", code: "2.4.1", topic: "FACILITY CONDITION", question: "Are process areas well-maintained and organized with adequate space?\n設備條件：區域是否得到了良好的維護和規劃，是否有足夠的空間？", expectation: "Yes:\n+ Clean, 750-1000 Lux lighting, shadow boards used.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_2_4_2", code: "2.4.2", topic: "EXECUTION", question: "Are procedures/guidelines for specific processes carried out with clear records?\n執行：特定的流程/指南是否有清晰的記錄？", expectation: "Yes:\n+ Process SOPs available and followed.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_2_4_3", code: "2.4.3", topic: "MACHINES/TOOLS", question: "Is area well-equipped with all necessary tools/machines configured with parameters?\n機器/工具：工作區域是否配備有必要的機器和工具？", expectation: "Yes:\n+ Equipment configured per SOPs.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_2_4_4", code: "2.4.4", topic: "MACHINES/TOOLS", question: "Are thermal treatment processes managed with precise parameter settings?\n機器/工具：熱處理工序（如熱轉印、貼合、平燙、壓花等）是否進行了精確的參數設置？", expectation: "Yes:\n+ Temp, pressure, time, speed calibrated.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_2_4_5", code: "2.4.5", topic: "IDENTIFICATION & TRACEABILITY", question: "Are input and output in each process area clearly labeled?\n標識及可追溯性：每個工序區域的入料和出料是否有清晰標籤？", expectation: "Yes:\n+ Clear style/lot/size tags on containers.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_2_4_6", code: "2.4.6", topic: "INSPECTION", question: "Are inspection activities properly carried out according to defined procedure?\n檢驗：檢查活動（包括顏色評估、洗水等）是否按照規定的程序進行？", expectation: "Yes:\n+ QC inspects every 2 hours.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_2_4_7", code: "2.4.7", topic: "INSPECTION", question: "Are records of inspection activities available and retained?\n檢驗：是否有檢驗活動的記錄並存檔以供追溯？", expectation: "Yes:\n+ Reports retained for at least 1 year.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_2_4_8", code: "2.4.8", topic: "INSPECTION", question: "Are Incoming Tests activities properly carried out?\n檢驗：來料測試（如顏色評估、洗水測試等）是否按規定程序進行？", expectation: "Yes:\n+ Incoming lab tests recorded.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_2_4_9", code: "2.4.9", topic: "ACTION PLAN", question: "Are action plans, in case of quality issues, well-managed?\n改善行動：當發生品質問題時，主管是否能做好改善行動計畫？", expectation: "Yes:\n+ Immediate and corrective CAPAs executed.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] }
                 ]
             },
             {
-                id: "sec_2_5",
-                code: "2.5",
-                name: "部件 | 配套中心 / 在製品倉庫 (WIP)",
-                nameEn: "Component | Distribution center/Super-market (WIP)",
+                id: "sec_2_5", code: "2.5", name: "部件 | 配套中心 / 在製品倉庫 (WIP)", nameEn: "Component | Distribution center/Super-market (WIP)",
                 items: [
-                    { id: "qam_2_5_1", code: "2.5.1", topic: "FACILITY CONDITION", question: "Are Distribution center/Supermarket areas well-maintained and organized?\n設施：區域是否得到了良好的維護和組織規劃，是否有足夠的存儲空間？", expectation: "Yes:\n+ Clean, dry, no mold, 6S monthly check, guidelines 0.5m/1.5m/0.1m.\n所有存儲區域乾淨，定期進行6S自檢和防黴檢驗\nNO:\nAny non-compliance found during review.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
-                    { id: "qam_2_5_2", code: "2.5.2", topic: "FACILITY CONDITION", question: "Does Distribution center/Supermarket areas have adequate and safe storage?\n設施：配套中心/在製品會是否有足夠空間及安全儲存？", expectation: "Yes:\n+ Items off floor on racks/containers; restricted access & unobstructed aisles.\n所有物品放在貨架上或容器中，不直接接觸地面\nNO:\nAny non-compliance found during review.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
-                    { id: "qam_2_5_3", code: "2.5.3", topic: "EXECUTION", question: "Are all semi-products/components stored properly to prevent physical damages?\n執行：所有半成品/部件是否妥善儲存在配套中心/在製品倉庫？", expectation: "Yes:\n+ Protected from dust, sunlight, crease/fold marks.\n適合放置物品類型、尺寸，避免折痕/皺褶\nNO:\nAny non-compliance found during review.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
-                    { id: "qam_2_5_4", code: "2.5.4", topic: "IDENTIFICATION & TRACEABILITY", question: "Are all semi-products/components clearly labeled and identified for traceability?\n識別/可查閱跟蹤：是否所有半成品/部件都有清晰的標籤和標識，以便於追溯？", expectation: "Yes:\n+ Style, PO, size, qty tags on each component/basket; replenishment control in place.\n每件半成品/部件上都有實物標籤資訊（款式、PO、數量、尺寸）\nNO:\nAny non-compliance found during review.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
-                    { id: "qam_2_5_5", code: "2.5.5", topic: "QC INSPECTION", question: "In case of sub-contractor materials, are INCOMING INSPECTION ACTIVITIES properly carried out?\nQC檢驗：包商的材料/半成品直接送到在製品倉庫，進料檢驗是否按照規定的流程進行？", expectation: "Yes:\n+ Min 750-1000 Lux lighting; moisture test & metal detection done for subcon upper/parts.\n檢驗區域有充足照明（最低 750-1000 Lux），做含水量試驗与金屬檢測\nNO:\nAny non-compliance found during review.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
-                    { id: "qam_2_5_6", code: "2.5.6", topic: "QC INSPECTION", question: "In case of sub-contractor materials, are INCOMING LAB TEST ACTIVITIES properly carried out?\nQC檢驗：外包的材料/半成品直接送到在製品倉庫，進料檢驗是否按照規定的流程進行？", expectation: "Yes:\n+ Lab test control sampling frequency defined; failed output blocked.\n來料 QC 檢驗流程包含取樣尺寸与頻率，不合格測試隔離作不合格品處理\nNO:\nAny non-compliance found during review.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] }
+                    { id: "qam_2_5_1", code: "2.5.1", topic: "FACILITY CONDITION", question: "Are Distribution center/Supermarket areas well-maintained and organized?\n設施：區域是否得到了良好的維護和組織規劃？", expectation: "Yes:\n+ Clean, dry, 6S monthly check.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_2_5_2", code: "2.5.2", topic: "FACILITY CONDITION", question: "Does Distribution center/Supermarket areas have adequate and safe storage?\n設施：配套中心/在製品會是否有足夠空間及安全儲存？", expectation: "Yes:\n+ Racks used, no items directly on floor.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_2_5_3", code: "2.5.3", topic: "EXECUTION", question: "Are all semi-products/components stored properly to prevent physical damages?\n執行：所有半成品/部件是否妥善儲存？", expectation: "Yes:\n+ Protected from dust, crease, and direct sunlight.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_2_5_4", code: "2.5.4", topic: "IDENTIFICATION & TRACEABILITY", question: "Are all semi-products/components clearly labeled and identified?\n識別/可查閱跟蹤：是否所有半成品/部件都有清晰標籤？", expectation: "Yes:\n+ PO, style, size, qty tags on each basket.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_2_5_5", code: "2.5.5", topic: "QC INSPECTION", question: "In case of sub-contractor materials, are INCOMING INSPECTION ACTIVITIES properly carried out?\nQC檢驗：包商材料送库，進料檢驗是否按規定進行？", expectation: "Yes:\n+ Min 750-1000 Lux lighting, moisture test done.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_2_5_6", code: "2.5.6", topic: "QC INSPECTION", question: "In case of sub-contractor materials, are INCOMING LAB TEST ACTIVITIES properly carried out?\nQC檢驗：外包材料送库，實驗室測試是否按規定進行？", expectation: "Yes:\n+ Lab test sampling frequency met, fails blocked.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] }
                 ]
             },
             {
-                id: "sec_3_1",
-                code: "3.1",
-                name: "針車 & 成型",
-                nameEn: "Stitching & Assembly",
+                id: "sec_3_1", code: "3.1", name: "針車 & 成型", nameEn: "Stitching & Assembly",
                 items: [
-                    { id: "qam_3_1_1", code: "3.1.1", topic: "FACILITY CONDITION", question: "Are the working areas well-maintained and organized?\n設施條件：工作區域是否有良好的維護和組織規劃，是否有足夠的存儲空間？", expectation: "Yes:\n+ Clean, bright, well-ventilated, 6S monthly check, 24/7 temp/humidity logged.\n所有針車與成型區域乾淨（無黴菌、無漏水），24/7記錄溫濕度\nNO:\nAny non-compliance found during review.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
-                    { id: "qam_3_1_2", code: "3.1.2", topic: "EXECUTION", question: "Are SOPs/working instructions properly carried out at workstation?\n執行：標準操作SOP在工作台上是否正確執行？", expectation: "Yes:\n+ SOPs posted; broken needle policy (1-to-1 replacement log) strictly followed; sharp tool control.\n有核可的SOP檔在工作台上，嚴格執行斷針1對1換針政策，金屬刀具影板管控\nNO:\nAny non-compliance found during review.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
-                    { id: "qam_3_1_3", code: "3.1.3", topic: "EXECUTION", question: "Are chemical/adhesive application in stitching & assembly properly managed?\n執行：車間化學品/膠水的使用管理是否符合規範？", expectation: "Yes:\n+ Chemical containers labeled with pot life; Secondary containment & ventilation used.\n使用量按照SOP，化學品有次級容器防漏，標明 pot life 適用期\nNO:\nAny non-compliance found during review.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
-                    { id: "qam_3_1_4", code: "3.1.4", topic: "EXECUTION", question: "Is the broken needle and metal policy strictly enforced in stitching?\n執行：針車線是否嚴格執行斷針控管和金屬管制程序？", expectation: "Yes:\n+ Locked broken needle box; 100% fragments collected before new needle issued.\n鎖定的斷針盒，100%收集碎片核對後發放新針\nNO:\nAny non-compliance found during review.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
-                    { id: "qam_3_1_5", code: "3.1.5", topic: "MACHINES/TOOLS", question: "Are sewing machines and assembly equipment well-equipped with specified parameters?\n機器/工具：針車與成型設備是否配備了指定的參數？", expectation: "Yes:\n+ Machines have unique IDs; parameter cards displayed on ovens (>75°C) & chilling tunnels (< -5°C).\n所有機器有唯一ID，烘箱、冷凍箱、貼底壓機參數卡貼出\nNO:\nAny non-compliance found during review.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
-                    { id: "qam_3_1_6", code: "3.1.6", topic: "MACHINES/TOOLS", question: "Are machines and gauges maintained with calibration status?\n機器/工具：設備和壓力表/溫度計是否具有校準和維護狀態？", expectation: "Yes:\n+ Gauges calibrated with labels; machine PM logs complete.\n壓力表、溫度計有第三方校準貼紙，有PM維護記錄\nNO:\nAny non-compliance found during review.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
-                    { id: "qam_3_1_7", code: "3.1.7", topic: "INSPECTION", question: "Are inline QCs checking SPI, margin, tension, and logging defects hourly?\n檢驗：巡檢QC是否依標準檢測針距(SPI)、邊距、拉力並逐時記錄？", expectation: "Yes:\n+ Hourly check sheet complete; SPI & margin check match tech package.\n逐時品質記錄表完整，SPI和邊距符合技術包規範\nNO:\nAny non-compliance found during review.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
-                    { id: "qam_3_1_8", code: "3.1.8", topic: "INSPECTION", question: "Are bonding strength / peeling tests conducted on assembly line?\n檢驗：成型貼底是否按頻率做拉力/剝離強度測試？", expectation: "Yes:\n+ Bonding strength meets brand spec (>3.0 kg/cm); test log available.\n貼底拉力測試符合標準（>3.0 kg/cm），有測試記錄\nNO:\nAny non-compliance found during review.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
-                    { id: "qam_3_1_9", code: "3.1.9", topic: "INSPECTION", question: "Are mold prevention controls (A0477) executed in assembly line?\n檢驗：成型防黴處理（防黴劑/UV殺菌）是否嚴格執行防黴A0477標準？", expectation: "Yes:\n+ Approved anti-mold chemical used; UV lamps intensity tested.\n使用核可防黴劑，UV燈管定期測試強度\nNO:\nAny non-compliance found during review.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
-                    { id: "qam_3_1_10", code: "3.1.10", topic: "INSPECTION", question: "Is moisture content tested (<12-14%) before shoe boxing?\n檢驗：成品包裝前是否使用測濕儀測定含水率（符合<12-14%標準）？", expectation: "Yes:\n+ Moisture meter calibrated; hourly moisture log recorded.\n測濕儀定期校準，逐時記錄鞋面与鞋底含水率\nNO:\nAny non-compliance found during review.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
-                    { id: "qam_3_1_11", code: "3.1.11", topic: "INSPECTION", question: "Are non-conforming shoes tagged and re-inspected after rework?\n檢驗：不良鞋是否掛牌隔離，返工後重新驗收入庫？", expectation: "Yes:\n+ Rework area defined with tracking log; 100% re-inspected.\n有明確返工隔離區和追蹤記錄，返工後100%重新檢驗\nNO:\nAny non-compliance found during review.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
-                    { id: "qam_3_1_12", code: "3.1.12", topic: "INSPECTION", question: "Are inspection reports retained for traceability?\n檢驗：檢驗報告是否存檔以供追溯？", expectation: "Yes:\n+ Reports retained for at least 1 year.\n檢驗報告至少保留 1 年\nNO:\nAny non-compliance found during review.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
-                    { id: "qam_3_1_13", code: "3.1.13", topic: "ACTION PLAN", question: "In case of quality defects exceeding limits, are CAPAs properly executed?\n改善行動：當瑕疵超過限度時，主管是否做好改善行動？", expectation: "Yes:\n+ Action plans include immediate, corrective, and preventive actions.\n包含立即、糾正和預防措施，有明確改善記錄\nNO:\nAny non-compliance found during review.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
-                    { id: "qam_3_1_14", code: "3.1.14", topic: "ACTION PLAN", question: "Are CTQ risk analyses and control measures cascaded to teams?\n改善行動：CTQ風險分析和控制措施是否下發至相關團隊？", expectation: "Yes:\n+ Supervisor and team understand CTQ risks for specific models.\n主管与團隊理解正在生產機型的 CTQ 風險与控制措施\nNO:\nAny non-compliance found during review.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
-                    { id: "qam_3_1_15", code: "3.1.15", topic: "TRACEABILITY", question: "Is traceability maintained from components to finished products?\n追溯性：從部件到成品鞋是否保持完整的雙向追溯？", expectation: "Yes:\n+ PO, lot number, date code traceable throughout stitching & assembly.\nPO訂單、批號、生產日期全程可追溯\nNO:\nAny non-compliance found during review.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] }
+                    { id: "qam_3_1_1", code: "3.1.1", topic: "FACILITY CONDITION", question: "Are working areas well-maintained and organized?\n設施條件：工作區域是否有良好的維護和組織規劃？", expectation: "Yes:\n+ Clean, bright, 24/7 temp/humidity logged.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_3_1_2", code: "3.1.2", topic: "EXECUTION", question: "Are SOPs properly carried out at workstation?\n執行：標準操作SOP在工作台上是否正確執行？", expectation: "Yes:\n+ SOPs posted; broken needle policy (1-to-1) strictly followed.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_3_1_3", code: "3.1.3", topic: "EXECUTION", question: "Are chemical/adhesive application properly managed?\n執行：車間化學品/膠水的使用管理是否符合規範？", expectation: "Yes:\n+ Pot life labeled; secondary containment used.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_3_1_4", code: "3.1.4", topic: "EXECUTION", question: "Is broken needle and metal policy strictly enforced?\n執行：針車線是否嚴格執行斷針控管？", expectation: "Yes:\n+ Locked broken needle box; 100% fragments verified.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_3_1_5", code: "3.1.5", topic: "MACHINES/TOOLS", question: "Are equipment well-equipped with specified parameters?\n機器/工具：針車與成型設備是否配備了指定的參數？", expectation: "Yes:\n+ Ovens (>75°C) & chillers (< -5°C) parameter cards posted.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_3_1_6", code: "3.1.6", topic: "MACHINES/TOOLS", question: "Are machines and gauges maintained with calibration status?\n機器/工具：設備和壓力表/溫度計是否有校準狀態？", expectation: "Yes:\n+ Gauges calibrated with labels.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_3_1_7", code: "3.1.7", topic: "INSPECTION", question: "Are inline QCs checking SPI, margin, tension hourly?\n檢驗：巡檢QC是否依標準檢測針距(SPI)、拉力并逐時記錄？", expectation: "Yes:\n+ Hourly check sheet complete.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_3_1_8", code: "3.1.8", topic: "INSPECTION", question: "Are bonding strength / peeling tests conducted?\n檢驗：成型貼底是否按頻率做拉力/剝離強度測試？", expectation: "Yes:\n+ Bonding strength meets spec (>3.0 kg/cm).", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_3_1_9", code: "3.1.9", topic: "INSPECTION", question: "Are mold prevention controls (A0477) executed?\n檢驗：成型防黴處理是否嚴格執行防黴A0477標準？", expectation: "Yes:\n+ Approved anti-mold chemical & UV lamps used.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_3_1_10", code: "3.1.10", topic: "INSPECTION", question: "Is moisture content tested (<12-14%) before shoe boxing?\n檢驗：成品包裝前是否測定含水率（符合<12-14%標準）？", expectation: "Yes:\n+ Calibrated meter; hourly log complete.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_3_1_11", code: "3.1.11", topic: "INSPECTION", question: "Are non-conforming shoes tagged and re-inspected after rework?\n檢驗：不良鞋是否掛牌隔離，返工後重新驗收入庫？", expectation: "Yes:\n+ Rework area defined with log.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_3_1_12", code: "3.1.12", topic: "INSPECTION", question: "Are inspection reports retained for traceability?\n檢驗：檢驗報告是否存檔以供追溯？", expectation: "Yes:\n+ Retained for at least 1 year.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_3_1_13", code: "3.1.13", topic: "ACTION PLAN", question: "In case of quality defects, are CAPAs properly executed?\n改善行動：當瑕疵超過限度時，主管是否做好改善行動？", expectation: "Yes:\n+ Immediate & preventive actions documented.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_3_1_14", code: "3.1.14", topic: "ACTION PLAN", question: "Are CTQ risk analyses cascaded to teams?\n改善行動：CTQ風險分析是否下發至相關團隊？", expectation: "Yes:\n+ Team understands CTQ risks.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_3_1_15", code: "3.1.15", topic: "TRACEABILITY", question: "Is traceability maintained from components to finished products?\n追溯性：從部件到成品鞋是否保持完整追溯？", expectation: "Yes:\n+ PO, lot #, date code traceable.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] }
                 ]
             },
             {
-                id: "sec_3_2",
-                code: "3.2",
-                name: "組底 (底加工)",
-                nameEn: "Stitching & Assembly | Stock-fitting",
+                id: "sec_3_2", code: "3.2", name: "組底 (底加工)", nameEn: "Stitching & Assembly | Stock-fitting",
                 items: [
-                    { id: "qam_3_2_1", code: "3.2.1", topic: "FACILITY CONDITION", question: "Are Stock-fitting areas well-maintained and organized?\n設施：組底區域是否有良好的維護和組織規劃？", expectation: "Yes:\n+ Clean, no mold, 6S monthly check, 24/7 temp/humidity logged, adequate lighting (750-1000 Lux).\n所有區域乾淨（無黴菌、無漏水），24/7記錄溫濕度，照明充足\nNO:\nAny non-compliance found during review.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
-                    { id: "qam_3_2_2", code: "3.2.2", topic: "EXECUTION", question: "Are Stock-fitting SOPs properly carried out at workstation?\n執行：組底作業指導書 SOP 是否在工作台上正確執行？", expectation: "Yes:\n+ SOPs posted; UV treatment parameters followed; production date clearly marked.\n有核可的SOP檔，UV處理參數符合規範，外發大底有明確日期標記\nNO:\nAny non-compliance found during review.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
-                    { id: "qam_3_2_3", code: "3.2.3", topic: "EXECUTION", question: "Are all chemicals used in Stock-fitting properly managed?\n執行：組底使用的所有化學品是否得到了妥善管理？", expectation: "Yes:\n+ Chemicals labeled with pot life, secondary containment used, no expired chemicals.\n化學品有標明適用期，使用次級容器，無過期化學品\nNO:\nAny non-compliance found during review.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
-                    { id: "qam_3_2_4", code: "3.2.4", topic: "MACHINES/TOOLS", question: "Is the Stock-fitting area well-equipped with configured machines/tools?\n機器/工具：組底區域是否配備了特定參數的機器和工具？", expectation: "Yes:\n+ Machines have unique IDs; solvent-based stations have exhaust fans; gauges calibrated.\n所有機器有唯一ID，溶劑型工作站有抽風系統，壓力表有第三方校準\nNO:\nAny non-compliance found during review.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
-                    { id: "qam_3_2_5", code: "3.2.5", topic: "IDENTIFICATION & TRACEABILITY", question: "Are all bottom components clearly labeled and traceable?\n標識/可追溯性：組底部件是否有清晰標籤並可追溯？", expectation: "Yes:\n+ Physical tags on bottom parts (PO, style, size, qty); Kanban tracking active.\n實物標籤資訊完整（PO、型體、尺寸、數量），看板系統追溯\nNO:\nAny non-compliance found during review.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
-                    { id: "qam_3_2_6", code: "3.2.6", topic: "INSPECTION", question: "Are Stock-fitting inspection activities carried out per SOP?\n檢驗：組底檢驗是否按規定的流程進行？", expectation: "Yes:\n+ QC inspects every 2 hours; bonding strength tested daily; metal detection done.\n每2小時QC檢查一次參數，每天做底加工拉力測試，大底過檢針\nNO:\nAny non-compliance found during review.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
-                    { id: "qam_3_2_7", code: "3.2.7", topic: "INSPECTION", question: "Are records of inspection activities in Stock-fitting retained for traceability?\n檢驗：是否有組底檢驗記錄並存檔以供追溯？", expectation: "Yes:\n+ Inspection reports retained for at least 1 year; QC mark on passed soles.\n檢驗報告至少保留1年，檢驗合格的大底有QC蓋章\nNO:\nAny non-compliance found during review.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
-                    { id: "qam_3_2_8", code: "3.2.8", topic: "ACTION PLAN", question: "Are action plans for Stock-fitting quality issues well-managed?\n改善行動：當組底出現品質問題時，主管是否能做好改善行動計畫？", expectation: "Yes:\n+ Action plans include immediate & preventive actions; CTQ cascaded to team.\n改善計畫包含立即行动、預防行動，主管及時審查不良趨勢\nNO:\nAny non-compliance found during review.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] }
+                    { id: "qam_3_2_1", code: "3.2.1", topic: "FACILITY CONDITION", question: "Are Stock-fitting areas well-maintained and organized?\n設施：組底區域是否有良好的維護和組織規劃？", expectation: "Yes:\n+ Clean, 24/7 temp/humidity logged, 750-1000 Lux lighting.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_3_2_2", code: "3.2.2", topic: "EXECUTION", question: "Are Stock-fitting SOPs properly carried out at workstation?\n執行：組底作業指導書 SOP 是否在工作台上正確執行？", expectation: "Yes:\n+ SOPs posted; UV treatment parameters followed.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_3_2_3", code: "3.2.3", topic: "EXECUTION", question: "Are all chemicals used in Stock-fitting properly managed?\n執行：組底使用的所有化學品是否妥善管理？", expectation: "Yes:\n+ Pot life labeled; secondary containment used.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_3_2_4", code: "3.2.4", topic: "MACHINES/TOOLS", question: "Is Stock-fitting area well-equipped with configured machines/tools?\n機器/工具：組底區域是否配備了特定參數的機器？", expectation: "Yes:\n+ Unique IDs on machines; exhaust fans working.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_3_2_5", code: "3.2.5", topic: "IDENTIFICATION & TRACEABILITY", question: "Are all bottom components clearly labeled and traceable?\n標識/可追溯性：組底部件是否有清晰標籤並可追溯？", expectation: "Yes:\n+ Tag information complete (PO, style, size, qty).", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_3_2_6", code: "3.2.6", topic: "INSPECTION", question: "Are Stock-fitting inspection activities carried out per SOP?\n檢驗：組底檢驗是否按規定的流程進行？", expectation: "Yes:\n+ Every 2 hours QC checks; daily bonding strength test.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_3_2_7", code: "3.2.7", topic: "INSPECTION", question: "Are records of inspection retained for traceability?\n檢驗：是否有組底檢驗記錄並存檔以供追溯？", expectation: "Yes:\n+ Reports retained for at least 1 year.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_3_2_8", code: "3.2.8", topic: "ACTION PLAN", question: "Are action plans for Stock-fitting quality issues well-managed?\n改善行動：當組底出現品質問題時，主管是否能做好改善行動？", expectation: "Yes:\n+ Immediate & preventive actions executed.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] }
                 ]
             },
             {
-                id: "sec_4_1",
-                code: "4.1",
-                name: "包裝 | 金屬檢測",
-                nameEn: "Packaging | Metal detection",
+                id: "sec_4_1", code: "4.1", name: "包裝 | 金屬檢測", nameEn: "Packaging | Metal detection",
                 items: [
-                    {
-                        id: "qam_4_1_1", code: "4.1.1",
-                        topic: "EXECUTION",
-                        question: "Are there operating procedures of metal detection carried out with clear records to ensure 100% products are metal-free before shipment?\n執行: 是否有金屬檢測的操作程式，並有明確的記錄，以確保100%的產品在裝運前不含金屬？",
-                        expectation: "Yes:\n+ The SOP / working instructions: SOP / 操作指導書\n* The content includes at least: Steps of metal detections, Machine setting, Machine calibration, Reporting, Reaction plan in case of metal issues or machine issues.\n內容至少包括：金屬檢測步驟、機器設置、機器校準、報告、金屬問題或機器問題時所採取相應的措施\n* All metal cases have to be recorded with clear details: Date / time, PO numbers, Style, Issue details, Action plan.\n所有發生金屬的問題都必須清楚記錄詳細的資訊：日期 / 時間、訂單編號、款式、金屬問題的詳細資訊、以及採取相應的行動計畫\n+ Records:記錄\n* Operating records for each order are retained for at least 1 year. 每個訂單的操作記錄至少保存 1 年\n* Record of metal issues (if any) are retained for at least 2 years. 金屬問題記錄至少保存 2 年（如有）\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況",
-                        weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: []
-                    },
-                    {
-                        id: "qam_4_1_2", code: "4.1.2",
-                        topic: "MACHINES/TOOLS",
-                        question: "Is the working area well-equipped with all machines/tools which are configured with specified parameters?\n機器 / 工具: 工作區域是否配備所有規定參數的機器 / 工具？",
-                        expectation: "Yes:\n+ Well-equipped: 設備齊全\n* The area is equipped with adequate metal detection machines & tools. 該區域配備了足夠的金屬檢測機器和工具\n* All metal detectors used in the process must have their unique IDs. 在此過程中使用的所有金屬探測器必須有其唯一的 ID\n* Metal detectors are maintained at a defined frequency with clear tracking records. 所有金屬探測器需按規定頻率維護保養，是否有清晰的保養記錄以便於跟蹤查閱\n* Metal detectors are checked with calibrated tools at defined frequencies. 金屬探測器需按照規定的頻率使用校準工具進行校準\n* Malfunctioning metal detectors are identified and isolated. 及時識別並隔離發生故障的金屬探測器\n+ Configuration: 配置\n* Metal detectors are configured with specified parameters following the defined SOPs. 金屬探測器按照 SOP 的規定去設置參數\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況",
-                        weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: []
-                    }
+                    { id: "qam_4_1_1", code: "4.1.1", topic: "EXECUTION", question: "Are there operating procedures of metal detection carried out with clear records?\n執行: 是否有金屬檢測的操作程式，並有明確記錄确保100%无金属？", expectation: "Yes:\n+ Standard SOPs with 9-point calibration.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_4_1_2", code: "4.1.2", topic: "MACHINES/TOOLS", question: "Is the working area well-equipped with all machines/tools configured?\n機器 / 工具: 工作區域是否配備所有規定參數的金屬檢測設備？", expectation: "Yes:\n+ Metal detectors have unique IDs and PM records.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] }
                 ]
             },
             {
-                id: "sec_4_2",
-                code: "4.2",
-                name: "包裝管理",
-                nameEn: "Packaging | Packaging activity",
+                id: "sec_4_2", code: "4.2", name: "包裝管理", nameEn: "Packaging | Packaging activity",
                 items: [
-                    {
-                        id: "qam_4_2_1", code: "4.2.1",
-                        topic: "FACILITY CONDITION",
-                        question: "Is the building well-maintained and organized?\n設施: 設施及環境的維護和組織規劃是否良好？",
-                        expectation: "Yes:\n+ Well-maintained: 維護良好\n* Packaging areas are clean (no mold signal, no roof / window leakage, no damaged floors and walls, windows are clean, no loose or exposed wiring).\n包裝區域清潔（沒有黴菌，發黴跡象，沒有屋頂 / 窗戶漏水，沒有損壞的地板和牆壁，窗戶清潔，沒有鬆動或裸露的電線）\n* Regular 6S self-inspection & Mold prevention checking are conducted according to Mold Prevention Guideline, A0477.\n根據《防黴指南》定期進行 6S 自檢和防黴檢視\n* Temperature & humidity control are recorded during working time. Deviation is managed with action plans.\n在工作期間都需要對溫度和濕度進行管控並記錄。如果發現溫，濕度數據有差異需立即採取相應的行動及時調整並改善\n+ Organized: 組織規劃\n* Packaging materials / Finished goods are arranged in order with clear identification. 包裝材料 / 包好的成品需排列整齊有序，標籤要清晰\n* Guidelines for storage: 0.5m from walls, 1.5m from windows and 0.1m from floor. 儲存政策要求：距離牆壁 0.5 米，距離窗戶 1.5 米，距離地板 0.1 米\n+ Safety: Aisles and emergency exit routes are free and unobstructed. 安全：通道和消防緊急出口通道暢通無阻\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況",
-                        weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: []
-                    },
-                    {
-                        id: "qam_4_2_2", code: "4.2.2",
-                        topic: "EXECUTION",
-                        question: "Are the SOPs (Standard Operating Procedures) to manage packaging activities available and applied by workers?\n執行: 是否有標準操作程式(SOP)來指導正確的包裝，並讓包裝人員正確的實施？",
-                        expectation: "Yes:\n+ SOPs:\n* Work instructions for packaging activity are formalized, available, and well-understood by operators.包裝 SOP 經過相關人員確認和批准，並讓操作人員熟練掌握和實施\n* SOP content is aligned with adidas latest L&P requirements. SOP 內容需符合 adidas 最新的 L&P 要求\n* Operators are trained and understand the SOP content & demonstrate by practice. 操作人員經過培訓，瞭解 SOP 內容並通過實踐操作\n* Before sealing the outer carton during packaging, a designated person must check that the labeling on the inner box match the information on the outer carton, while also verifying that there are no missing packing. (Repacking / less carton of order).\n包裝時，在封外箱前，必須有專人檢查內盒上的標籤是否與外箱上的標籤內容一致，同時確認沒有遺漏包裝(包含翻箱的訂單或者是尾數箱)\n* QC randomly inspects the packaged shoes after warehouse to check whether there are any quality issues, such as appearance deformation due to compression.\nQC 需對包好的進入成品倉庫後的鞋子隨機抽檢，確定包好的鞋子外觀是否有擠壓變形等其他品質問題\n* The outer carton and inner boxes need to be tested for moisture content when entering the packing material warehouse.\n外箱和內盒在進入包材倉庫時需要進行含水量測試(隨機)\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況",
-                        weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: []
-                    },
-                    {
-                        id: "qam_4_2_3", code: "4.2.3",
-                        topic: "MACHINES/TOOLS",
-                        question: "Is the packaging area well-equipped with machines that are configured with specified parameters?\n機器 / 工具: 包裝區是否配備規定參數的機器設備？",
-                        expectation: "Yes:\n+ Well-equipped: 設備齊全\n* All machines (if in use in the packaging area) must have their unique IDs. 所有機器（如果在包裝區域使用）都必須具有唯一的 ID\n* Machines are maintained at defined frequencies with clear tracking records. 機器按規定頻率進行維護保養，並有清晰的跟蹤記錄\n* Malfunctioning machines are identified and isolated. 識別並隔離有故障的機器\n+ Configuration: 配置\n* Machines are configured with specified parameters following the defined SOPs. 機器需按照 SOP 的規定去設置相關的參數\n+ Not Applicable: T1s only have manual packaging. 不適用：如果 T1 工廠只有手工包裝作業沒有機器包裝則不適用上述要求\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況",
-                        weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: []
-                    }
+                    { id: "qam_4_2_1", code: "4.2.1", topic: "FACILITY CONDITION", question: "Is the building well-maintained and organized?\n設施: 設施及環境的維護和組織規劃是否良好？", expectation: "Yes:\n+ Clean, dry, 6S monthly check, 0.5m/1.5m/0.1m rule.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_4_2_2", code: "4.2.2", topic: "EXECUTION", question: "Are the SOPs to manage packaging activities available and applied by workers?\n執行: 是否有標準操作程式(SOP)來指導正確包裝？", expectation: "Yes:\n+ Operators trained; inner/outer box labels verified.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_4_2_3", code: "4.2.3", topic: "MACHINES/TOOLS", question: "Is packaging area well-equipped with machines configured with specified parameters?\n機器 / 工具: 包裝區是否配備規定參數的機器設備？", expectation: "Yes:\n+ Unique IDs on machines; parameters followed.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] }
                 ]
             },
             {
-                id: "sec_5",
-                code: "5",
-                name: "成品倉",
-                nameEn: "FG Warehouse",
+                id: "sec_5", code: "5", name: "成品倉", nameEn: "FG Warehouse",
                 items: [
-                    {
-                        id: "qam_5_1", code: "5.1",
-                        topic: "FACILITY CONDITION",
-                        question: "Is the building well-maintained and organized ?\n設施: 建築物是否有良好的維護和組織規劃？",
-                        expectation: "Yes:\n+ Well-maintained: 維護良好\n* FG Warehouses are clean (no mold signal, no roof / window leakage, no damaged floors and walls, windows are clean, no loose or exposed wiring).\n成品倉乾淨（沒有黴菌，發黴跡象，沒有屋頂 / 窗戶漏水，沒有損壞的地板和牆壁，窗戶乾淨，沒有鬆動或裸露的電線）\n* Regular 6S self-inspection & Mold prevention checking are conducted according to Mold Prevention Guideline, A0477.\n根據《防黴指南》定期進行 6S 自檢和防黴檢視\n* Temperature & humidity is maintained and recorded at all time (24/7). Deviation is managed with action plans.\n始終保持並記錄溫度和濕度（24/7）。通過改善行動計畫去管理溫，濕度的差異\n+ Organized: 組織規劃\n* FGs are arranged neatly as per the defined layout with clear identification for each area.\n成品倉按照規定的佈局整齊排列，每個區域都有清晰的標識\n* FG with special status (Cancelled POs, Leftover FG storage,etc) must be arranged in separated location with clear tracking information.\n特殊情況的成品（以完成訂單被客人取消、剩餘成品庫存等）必須分開單獨區域放置，並有明確清晰的標識以便於跟蹤\n* Guidelines for storage: 0.5m from walls, 1.5m from windows and 0.1m from floor. 儲存政策要求：距離牆壁 0.5 米，距離窗戶 1.5 米，距離地板 0.1 米\n* No outer carton box damage is observed. 外箱跟內盒沒有損壞\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況",
-                        weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: []
-                    },
-                    {
-                        id: "qam_5_2", code: "5.2",
-                        topic: "FACILITY CONDITION",
-                        question: "Does the building have adequate storage and restricted access?\n設施: 建築物是否有足夠的儲存空間和出入管理？",
-                        expectation: "Yes:\n+ Adequate storage: All cartons must be arranged in pallets or racks. No product or carton is directly put on the floor.\n充足的儲存：所有紙箱必須放在託盤或貨架上，所有物品或紙箱不可直接放在地板上\n+ Restricted access: Implement security measures to protect stored materials from unauthorized access. All access & exit are recorded.\n限制性訪問：實施安全措施，為保護所儲存的物品安全，所有未經過授權的訪問都不允許，且所有出入口都需要有出入登記記錄\n+ Safety: 安全性\n* Aisles and emergency exit routes are free and unobstructed. 通道和緊急出口路線自由無阻\n* Carton boxes are piled up with reasonable height to maintain safety. 紙箱以合理的高度堆放，以保持安全\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況",
-                        weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: []
-                    },
-                    {
-                        id: "qam_5_3", code: "5.3",
-                        topic: "FACILITY CONDITION",
-                        question: "Is there a designated and secured area for isolating non-conforming FGs with clear tracking records?\n設施: 是否有指定的安全區域用於隔離不合格的成品，並有明確的跟蹤記錄？",
-                        expectation: "Yes:\n+ Designated area: There's a specific space with clear identification to isolate non-conforming POs.\n指定區域：有明確標識的專用空間隔離不合格的產品\n+ Secured area: Security measures are applied in this area to prevent the unintentional use or mixing of non-conforming POs with conforming ones.\n安全區域：在該區域採用安全措施，防止不合格產品與合格產品無意中使用或混合使用\n+ Records of each non-conforming PO are available, including at least: PO numbers, quantity, style.\n每個不合格訂單的記錄詳細，至少包括：訂單編號、數量、款式\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況",
-                        weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: []
-                    },
-                    {
-                        id: "qam_5_4", code: "5.4",
-                        topic: "EXECUTION",
-                        question: "Is there asolid tracking systemapplied to ensure theaccuracy of FGs inventory?\n執行: 是否有可靠的查閱跟蹤系統來確保成品庫存的準確性？",
-                        expectation: "Yes:\n+ Solid tracking system: 固定查閱跟蹤系統\n* A digitalized or manual system exists to manage quantity in the warehouse. 有一個數位化或人工系統來管理倉庫的數量\n* Physical counts are done at a defined frequency to verify FG inventory accuracy. 按規定的頻率進行實物盤點，以驗證成品倉庫數量的準確性\n+ Accuracy of inventory: Quantity and storage location from physical count is matched with documents and system data.\n庫存的準確性：實物盤點的數量和存儲位置與文檔和系統數據相匹配\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況",
-                        weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: []
-                    },
-                    {
-                        id: "qam_5_5", code: "5.5",
-                        topic: "IDENTIFICATION & TRACEABILITY",
-                        question: "Are all products (Passed POs, Failed PO, B/C grades,etc.) clearly labeled and Identified for easy retrieval and traceability?\n識別及可追溯: 所有產品（合格的訂單，不合格的訂單, B / C品, 等）是否有清晰的標籤和標識，便於查找和追溯？",
-                        expectation: "Yes:\n+ Labeled: Visual controls such as labels, color coding, or markings are consistently applied and understood by workers.\n標籤：可視化管理，如標籤、顏色編碼或標記，讓所有工人能夠很好的理解以及熟練的應用\n+ Identification: Physical identification information is on each PO / product, including at least, PO number, quantity, quality status.\n標識：每個訂單 / 產品上都有清晰的標識資訊，至少包括訂單編號、數量、品質狀態\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況",
-                        weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: []
-                    }
+                    { id: "qam_5_1", code: "5.1", topic: "FACILITY CONDITION", question: "Is the building well-maintained and organized?\n設施: 建築物是否有良好的維護和組織規劃？", expectation: "Yes:\n+ Clean, 24/7 temp & humidity logged, 0.5m/1.5m/0.1m rule.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_5_2", code: "5.2", topic: "FACILITY CONDITION", question: "Does the building have adequate storage and restricted access?\n設施: 建築物是否有足夠的儲存空間和出入管理？", expectation: "Yes:\n+ Pallets used, access recorded, unobstructed exits.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_5_3", code: "5.3", topic: "FACILITY CONDITION", question: "Is there a designated and secured area for isolating non-conforming FGs?\n設施: 是否有指定的安全區域用於隔離不合格的成品？", expectation: "Yes:\n+ Designated isolated space with PO records.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_5_4", code: "5.4", topic: "EXECUTION", question: "Is there a solid tracking system applied to ensure accuracy of FGs inventory?\n執行: 是否有可靠的查閱跟蹤系統來確保成品庫存的準確性？", expectation: "Yes:\n+ Digital system matching physical counts.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_5_5", code: "5.5", topic: "IDENTIFICATION & TRACEABILITY", question: "Are all products clearly labeled and identified for easy retrieval?\n識別及可追溯: 所有產品是否有清晰的標籤和標識？", expectation: "Yes:\n+ PO number, quantity, quality status clearly displayed.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] }
                 ]
             },
             {
-                id: "sec_6",
-                code: "6",
-                name: "AQL 驗貨室",
-                nameEn: "AQL Inspection",
+                id: "sec_6", code: "6", name: "AQL 驗貨室", nameEn: "AQL Inspection",
                 items: [
-                    {
-                        id: "qam_6_1", code: "6.1",
-                        topic: "FACILITY CONDITION",
-                        question: "Is AQL inspection room well-maintained ?\n設施: AQL驗貨室是否得到良好的維護？",
-                        expectation: "Yes:\n+ Well-maintained: 維護良好\n* Inspections room(s) are clean (no mold signal, no roof / window leakage, no damaged floors and walls, windows are clean, no loose or exposed wiring).\n驗貨室是乾淨的（沒有黴菌，發黴跡象，沒有屋頂 / 窗戶漏水，沒有損壞的地板和牆壁，窗戶是乾淨的，沒有鬆動或裸露的電線）\n* Regular 6S self-inspection & Mold prevention checking are conducted according to Mold Prevention Guideline A0477.\n根據《防黴指南》定期進行 6S 自檢和防黴檢視\n* During working time, the temperature and humidity is controlled within acceptable ranges in the AQL inspection room according to Mold Prevention Guideline (A0477).\n工作期間，驗貨室的溫湿度控制在規定的標準範圍內\n* The AQL room is metal-free, following requirements of Metal Free Policy (ex: only use plastic knife, scissors must be kept in shadow box).\n驗貨室不允許有任何金屬製品，傳統剪刀不符合金屬政策的要求（例如：只能使用塑膠刀，剪刀必須放在插套內）\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況",
-                        weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: []
-                    },
-                    {
-                        id: "qam_6_2", code: "6.2",
-                        topic: "FACILITY CONDITION",
-                        question: "Is AQL inspection room organized with adequate storage and restricted access?\n設施: AQL驗貨室是否有足夠的空間存放樣品和限制非授權人員的進入？",
-                        expectation: "Yes:\n+ Organized: 組織規劃\n* AQLs are arranged neatly as per the defined layout with clear identification for each area (Ex: Samples storage, Waiting for inspection, Passed / Failed,etc.)\n驗貨室按照規定的佈局整齊排列，每個區域都有明確的標識（例如，樣品儲存、等待檢查、通過 / 不通過等）\n* Guidelines for storage: 0.5m from walls, 1.5m from windows and 0.1m from floor. 儲存政策指南，距離牆壁 0.5 米，距離窗戶 1.5 米，距離地板 0.1 米\n* AQL sampling table, L&P Information, General workmanship standard are displayed. 顯示 AQL 抽樣表，L & P 訂單和包裝的詳細資訊，一般工藝標準\n+ Adequate storage: The room must be sized enough to contain all sampling cartons for each inspection. 充足的儲存：驗貨室的大小必須足夠容納每次驗貨的所有抽樣箱\n+ Restricted access: The inspection room should be used by authorized personnel for inspection-related purposes. 限制准入：驗貨室只能有經授權的人員進入\n+ Accessibility to CTQ Control Measures: CTQ控制措施的可訪問性\n* Do AQL inspection team have easy access to CTQ documents, allowing information to be provided without difficulty when the AQL inspection?\nAQL 驗貨團隊是否有途徑能獲取 CTQ 文件，使得能消除障礙在驗貨時提供所需信息？\n* Do AQL inspection team have any digital internal system (or platform or share folder) to enable efficiency access to all CTQ relates (e.g. :soft file of CTQ model, risk level ,control measure )?\nAQL 驗貨團隊是否有任何數位化的內控系統（或平台、共享文件夾），以實現對所有 CTQ 相關信息（例如：CTQ 的電子文件、風險等級、控制措施）的高效訪問？\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況",
-                        weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: []
-                    },
-                    {
-                        id: "qam_6_3", code: "6.3",
-                        topic: "FACILITY CONDITION",
-                        question: "Are AQL inspection room is equipped with good devices/tools, samples, an AQL pass rate visualization board?\n設施: AQL驗貨室是否配備了設備 / 工具、樣品、AQL通過率等可視化的看板？",
-                        expectation: "Yes:\n+ Inspection table: 檢驗台\n* Standard size: W 3m x H 1m. 標準尺寸：寬 3m x 高 1m\n* Sufficient lighting: Min 750-1000 Lux. 充足的照明：最低 750-1000 Lux\n* Color: white or grey, with smooth surface, no damage. 顏色：白色或灰色，表面光滑，無損傷\n+ Devices / tools used for inspection: 用於檢驗的設備 / 工具\n* Follows adidas AQL validation Procedures. 遵循 adidas AQL 驗證程式\n* Have an up-to-date & valid calibration. 有最新有效的校准\n+ Approved Production Sample is available in each production line, with correct and valid information (product name, QA / QC approval...)\n确认樣鞋可用，且具有有效正确的資訊（產品名稱，QA / QC確認簽名...）\n+ AQL pass rate are timely visualized in the room. AQL 通過率及時顯示在驗貨室的看板上\n+ AQL Inspection personnel's awareness of CTQ risk analysis and control measure: AQL驗貨人員對 CTQ 風險分析及控制措施的認知情況\n* CTQ documents information with all relevant details cascade to relevant QC teams? 包含所有相關詳情的 CTQ 文件信息是否已下發到所有相應的 QC 團隊？\n* AQL inspection personnel aware & understand the CTQ risks and control measures for the specific model when the inspection?\nAQL 驗貨人員是否清楚跟理解正在檢驗的特定機型的 CTQ 風險及其控制措施？\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況",
-                        weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: []
-                    },
-                    {
-                        id: "qam_6_4", code: "6.4",
-                        topic: "INSPECTION",
-                        question: "Are AQL inspection activities properly carried out according to the specified procedures with clear records?\n檢驗: AQL檢驗是否按照規定的程式正確進行，是否有明確的記錄？",
-                        expectation: "Yes:\n+ AQL inspection procedures: AQL檢驗程式\n* Approved documents show instructions AQL inspection, including at least: Sampling, Inspection steps, reporting, handling non-conforming POs.\n核準的文檔顯示 AQL 檢驗說明，內容項目至少包括：抽樣、檢查步驟、報告、不合格訂單的處理\n* Escalation process in case of Failed POs or Failure rate exceeds acceptance limits. 檢查不合格或不合格率超過可接受限度時需向上級呈報\n* Inspection criteria / Defect list must be aligned with adidas latest requirements. 檢查標準 / 不良清單必須符合 adidas 的最新要求\n* CFA decision making process must include Finished Goods Test report verification. CFA 檢驗流程說明必需包含成品測試報告的驗證\n* CFAs understand the procedure content & can demonstrate by practice. CFA 瞭解檢驗程式內容並能通過實踐演示操作\n+ Clear records: 清晰記錄\n* Inspection results are documented timely, including any deviations or non-conformities.\n及時記錄檢驗結果，包括任何偏差或不合格情況\n* Inspection results are shared with related departments (CFA leaders, Production) 檢驗結果及時通報相關部門（CFA 主管、生產 / 生管 / 業務）知悉\n* AQL inspection records are retained for at least 2 years. AQL 檢驗記錄至少保存 2 年\n+ CTQ Control Measures - execution monitoring: CTQ控制措施 - 執行監督\n* Are the 7 CTQ risks identified being monitored and tracked in AQL inspection? 已識別的 7 項 CTQ 風險是否在 AQL 驗貨中得到監督和跟蹤？\n* Are the BDC inline DC and TDC endline findings entered into the T1 quality system and monitored? BDC 和 TDC 的檢驗結果是否錄入 T1 品質系統並進行監督？\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況",
-                        weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: []
-                    },
-                    {
-                        id: "qam_6_5", code: "6.5",
-                        topic: "INSPECTION",
-                        question: "Are approved samples in the AQL inspection room identified and organized appropriately?\n檢驗: AQL驗貨室內的確認樣品是否有清晰的標籤和妥善存放？",
-                        expectation: "Yes:\n+ Organized: 組織規劃\n* Well-defined designated areas or containers are used for storing samples. 明確的指定區域或容器用於存放確認樣品\n* Samples are arranged in a systematic manner. 確認樣品有工序的依次擺放整齊\n+ Identified: 標記\n* Each sample must have a clear labeling showing at least: Style information, Season, Approval by Developers.\n每份樣品必需有清晰的標籤，至少顯示，款式資訊，季節，開發簽名確認\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況",
-                        weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: []
-                    },
-                    {
-                        id: "qam_6_6", code: "6.6",
-                        topic: "INSPECTION",
-                        question: "Is the AQL inspection capacity prepared to cope with business needs?\n檢驗: AQL檢查能力是否已準備好应对业务的需求及需要？",
-                        expectation: "Yes:\n+ The supplier has a documented headcount plan that specifies the number of trained inspectors required for business needs, and they consistently follow this plan.\n工廠有一个書面人員規劃計畫表，該計畫规定了由于業務需要所需經過培訓的驗貨人員的數量，且始終遵循該計畫\n+ Inspectors have received appropriate training and possess the necessary adidas CFA certificates for their roles.\n檢驗員接受过適當的培訓，並擁有在 adidas 驗貨要求的相應 CFA 證書以勝任其工作職責\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況",
-                        weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: []
-                    },
-                    {
-                        id: "qam_6_7", code: "6.7",
-                        topic: "INSPECTION",
-                        question: "Are non-conforming POs well-managed to prevent unintended shipments?\n檢驗: 是否妥善管理不合格訂單以防止出貨的意外？",
-                        expectation: "Yes:\n+ Well-managed: 管理良好\n* Failed inspection results are communicated to relevant departments (Warehouse, Production, Quality, etc.) to take actions.\n不合格的檢驗結果及時通報相關部門（倉庫、生產、晶質、業務...等）採取執行及改善措施\n* Non-conforming POs must be identified & isolated as per defined procedures. 檢驗不合格的訂單必須按規定的程式進行隔離和標准\n* Action plans for non-conforming POs (Rework / Disposal / etc.) must be documented. 檢驗不合格的訂單（返工 / B品 / C品 / 銷毀等）處置需有書面記錄\n+ Defect Rate Tracking & Control measure adjustment: CTQ 不良率追蹤與控制措施調整\n* Is the defect trend reviewed by the AQL inspection team in a timely manner to ensure prompt action? AQL 團隊是否及時審查不良趨勢，以確保採取迅速行動？\n* Are further adjustments in control measures being made when the defined control measure is proven inefficient? (Report to the CFA leaders in timely and shared with related departments). 當既定的控制措施被證明效果不佳時，是否對控制措施進行了進一步調整（及時上報螢線領導並共享給相關部門）？\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況",
-                        weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: []
-                    },
-                    {
-                        id: "qam_6_8", code: "6.8",
-                        topic: "EXECUTION",
-                        question: "Are rework activities carried out properly by production teams as per defined procedure with clear tracking records?\n執行: 是否按照規定的程式進行，是否有清晰的跟蹤記錄？",
-                        expectation: "Yes:\n+ The factory has clear procedures for handling and recording reworked products with clear roles and responsibilities from related departments (CFAs, QCs, production team).\n工廠有明確的重工和記錄重工產品的程式，明確了相關部門（CFA、QC、、生產團隊）明確的管理職責與重工流程\n+ Procedure content has at least: Identification, Isolation, Rework process, Reporting,etc. 流程內容至少包括：鑒定、隔離、返修、報告...等\n+ Production lines have clear tracking reports of rework activities, including at least: PO information, Reasons for rework, rework input & output quantity, disposal quantity (if any).\n生產線要有清晰的重工追蹤報告，內容項目至少包括：PO 資訊、重工原因、返修投入和產出的數量、報廢數量（如有）\n+ Rework POs must be re-inspected by CFA as new POs with proven tracking records. 重修的訂單必需由 CFA 作為新訂單重新檢驗，有清晰的跟蹤和記錄\n+ Records of reworked POs by production lines, and re-inspections from CFA teams must be retained for at least 2 years.\n生產重修的訂單記錄，以及 CFA 團隊的重新檢驗記錄至少保留至少 2 年\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況",
-                        weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: []
-                    }
+                    { id: "qam_6_1", code: "6.1", topic: "FACILITY CONDITION", question: "Is AQL inspection room well-maintained?\n設施: AQL驗貨室是否得到良好的維護？", expectation: "Yes:\n+ Clean, A0477 temp/humidity standard, metal-free policy.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_6_2", code: "6.2", topic: "FACILITY CONDITION", question: "Is AQL inspection room organized with adequate storage and restricted access?\n設施: AQL驗貨室是否有足夠的空間存放樣品和限制非授權人員進入？", expectation: "Yes:\n+ Layout defined; sampling table and standards displayed.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_6_3", code: "6.3", topic: "FACILITY CONDITION", question: "Are AQL inspection room equipped with good devices/tools and pass rate board?\n設施: AQL驗貨室是否配備了設備/工具、樣品、AQL通過率看板？", expectation: "Yes:\n+ Standard inspection table (3m x 1m), 750-1000 Lux lighting.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_6_4", code: "6.4", topic: "INSPECTION", question: "Are AQL inspection activities properly carried out per procedures?\n檢驗: AQL檢驗是否按照規定的程式正確進行，是否有明確記錄？", expectation: "Yes:\n+ CFA inspection logs retained for 2 years.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_6_5", code: "6.5", topic: "INSPECTION", question: "Are approved samples in AQL room identified and organized appropriately?\n檢驗: AQL驗貨室內的確認樣品是否有清晰標籤和妥善存放？", expectation: "Yes:\n+ Season, style, developer approval tag intact.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_6_6", code: "6.6", topic: "INSPECTION", question: "Is AQL inspection capacity prepared to cope with business needs?\n檢驗: AQL檢查能力是否已準備好应对业务需求？", expectation: "Yes:\n+ Certified CFA inspectors with valid certificates.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_6_7", code: "6.7", topic: "INSPECTION", question: "Are non-conforming POs well-managed to prevent unintended shipments?\n檢驗: 是否妥善管理不合格訂單以防止意外出貨？", expectation: "Yes:\n+ Failed POs isolated; disposal/rework plans documented.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_6_8", code: "6.8", topic: "EXECUTION", question: "Are rework activities carried out per procedure with tracking records?\n執行: 是否按照規定的程式進行重工，是否有清晰的跟蹤記錄？", expectation: "Yes:\n+ Rework POs re-inspected by CFA as new POs.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] }
                 ]
             },
             {
-                id: "sec_7",
-                code: "7",
-                name: "樣品室",
-                nameEn: "Sample room",
+                id: "sec_7", code: "7", name: "樣品室", nameEn: "Sample room",
                 items: [
-                    {
-                        id: "qam_7_1", code: "7.1",
-                        topic: "FACILITY CONDITION",
-                        question: "Is Sample room well-maintained and organized?\n設施: 樣品室是否維護良好及擺放有序？",
-                        expectation: "Yes:\n+ Well-maintained: 維護良好\n* All areas (including Warehouse for Sample Room, if applicable) are clean (no mold signal, no roof / window leakage, no damaged floors and walls, windows are clean, no loose or exposed wiring). 所有區域包括樣品倉庫都是乾淨的，沒有發黴，發黴跡象，沒有屋頂/窗戶漏水，沒有損壞的地板和牆壁，窗戶是乾淨的，沒有鬆動或裸露的電線\n* Regular 6S self-inspection & Mold prevention checking are conducted according to Mold Prevention Guideline, A0477.\n根據《防黴指南》定期進行 6S 自檢和防黴檢視\n* Temperature & humidity control are in place with clear follow-up. Deviation from standard limits mentioned in Mold Prevention Guidelines are managed with records. 溫湿度控制到位，並有明確的跟蹤批註，對《防黴指南》中提到的標準限值的偏差進行記錄管理，如果溫，濕度數值有偏差需立即採取相應改善措施以及執行\n+ Organized: 組織規劃\n* Products/Materials/Accessories are arranged in order without piling up and visual management. 區域內所有產品/材料/配件排列整齊，沒有堆積，建立目視化管理系統\n+ Restricted access: 受限訪問\n* The sample room should be used by authorized personnel. 所有進入樣品室人員需經授權批准\n* Sample receipt / delivery should be managed by a responsible person with clear records.\n樣品交付及接收需有專門負責人管理並有清楚記錄及存檔\n+ Metal free: The sample room must be metal-free following Metal Free Policy requirements. 金屬管控，樣品室必須符合金屬管控政策的要求，所有機器設備按規定的頻率進行維護，是否有清楚的跟蹤記錄。所有模具和工具的管理是完整的，沒有損壞，標示清楚。所有機器設備按規定的頻率進行維護，是否有清晰的跟蹤記錄。所有模具和工具的管理是完整的，沒有損壞，標示清楚\n+ All chemicals need to be operated in accordance with FIFO and visual management. 所有化學品需要按照先進先出原則和可視化管理進行操作\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況",
-                        weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: []
-                    },
-                    {
-                        id: "qam_7_2", code: "7.2",
-                        topic: "EXECUTION",
-                        question: "Are procedures/SOP for making samples properly carried out?\n執行: 是否正確執行製作樣品的程式 / SOP？",
-                        expectation: "Yes:\n+ The procedure / SOP: 程式 / SOP\n* The procedure showing clear steps, requirements, roles & responsibilities of relevant teams / people in sample room.\n流程圖清晰地顯示了詳細的工作流程、要求、相關團隊 / 人員在樣品室中的工作管理範圍和職責\n* The content aligns with adidas latest requirements. 內容符合 adidas 最新要求\n+ Operators in the sample room are aware of all technical requirements and can demonstrate by practice. 操作人員瞭解所有技術要求，並能通過熟練的操作演示\n+ Accessibility to CTQ Control Measures: CTQ控制措施的可訪問性\n* Do T1 team (all departments impacted) and T1 quality have easy access to CTQ documents, allowing information to be provided without difficulty on the production line? 生產團隊是否有途徑能獲取 CTQ 文件，使能消除障礙在生產地上提供所需資訊？\n* Do T1 have any digital internal system (or platform or share folder) to enable efficiency access to all CTQ relates (e.g. :soft file of CTQ model, risk level ,control measure )? 生產團隊是否有任何數位化的內控系統（或平台、共享文件夾），以實現對所有 CTQ 相關信息（例如：CTQ 的電子文件、風險等級、控制措施）的高效訪問？\n+ Control measure execution at department: 部門內控制措施的執行\n* Is there training conducted to ensure that technicians/operators/supervisors etc are all adequately informed and able to execute on the agreed/required control measures? 是否開展了培訓，以確保技術人員 / 操作人員 / 主管等所有相關人員均已充分瞭解並能執行既定的 / 要求的控制措施？\n+ Critical to Process: 關鍵流程\n* SOPs and equipment at CTQ workstations design to ensure repeatability / reproducibility to safeguard consistent method/process? (Eg, computer stitching i/o manual, where it deskill the operator/automates the process ). 位於 CTQ 工作站的標準作業程序和設備設計，是否旨在確保操作的重復性和/或再現性，以保障方法/工藝的一致性？（例如，採用電腦縫紉替代人工裁縫，以降低對操作人員的技能依賴/實現流程自動化）\n+ Production/Supervisor awareness of CTQ risk analysis and control measure: 生產 / 主管人員對 CTQ 風險分析及控制措施的認知情況\n* CTQ documents information with all relevant details cascade to relevant T1 teams? 包含所有相關詳情的 CTQ 文件信息是否已下發到所有相應的 T1 團隊？\n* Production supervisor aware & understand the CTQ risks and control measures for the specific model in production?\n生產主管或管理層是否理解正在生產的特定機型安的 CTQ 風險及其控制措施？\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況",
-                        weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: []
-                    },
-                    {
-                        id: "qam_7_3", code: "7.3",
-                        topic: "EXECUTION",
-                        question: "Is marker making process well managed with proper equipment?\n執行: 紙樣製作過程是否有適當的設備进行妥善管理？",
-                        expectation: "Yes:\n+ There is a system in place for checking / measuring all single size and graded patterns. 有一個系統來檢查 / 測量所有單一號碼和放樣全套的紙版\n+ There is a procedure to control the issuing of markers according to cutting requirements. 有一個流程來管控，根據裁斷要求發放相關的繪圖紙版\n+ There is a system in place to monitor changes through the pattern process. 有一個系統來管控整個紙版放樣的以及紙版有任何的修改和變更\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況",
-                        weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: []
-                    },
-                    {
-                        id: "qam_7_4", code: "7.4",
-                        topic: "INSPECTION",
-                        question: "Are sample inspection areas clean with sufficient space, light, and equipped with devices/tools, in accordance with defined specification?\n檢驗: 樣品檢驗區域是否清潔，有足夠的空間，光線，並按照規定的規格配置相關的設備 / 工具？",
-                        expectation: "Yes:\n+ Sample inspection areas: 樣品檢驗區域\n* Inspection table size is suitable for inspection activities, lighting standard: Min 750-1000 Lux. 檢驗桌尺寸適合檢驗活動，照明標準:最小 750-1000 Lux\n* Inspection table is colored white or grey, with a smooth surface. 檢驗桌為白色或灰色，表面光滑\n+ Devices / tools used for inspection have an updated & valid calibration. 用於檢驗的設備 / 工具在有效的校准期內\n+ The product specifications are available and easily accessed. 用於檢驗的樣品說明書包括相應技術參數，或者相關實物物品（圖紙樣品），是正確的並可作為參照以及能夠方便的查閱\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況",
-                        weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: []
-                    },
-                    {
-                        id: "qam_7_5", code: "7.5",
-                        topic: "INSPECTION",
-                        question: "Are sample inspection activities properly carried out according to the specified procedures?\n檢驗: 樣品檢驗是否按照規定的程式正確進行？",
-                        expectation: "Yes:\n+ Sample inspection procedures: 樣品檢驗程式\n* An approved document shows instructions of sample inspection, including at least: Inspection criteria & standards, Inspection steps, Reporting, Handling non-conforming samples.\n經通過確認和批准的檔資料展示了樣品檢驗的說明，內容項目至少包括：檢驗標準和規範、檢驗方式、報告、不合格樣品的處理\n* Contents of the documents are aligned with adidas requirements (if any). 符合 adidas 要求的內容（如有）\n* QCs understand the procedure content & can demonstrate by practice. QC 瞭解程式內容，在能通過熟練實操演示\n+ CTQ Control Measures - execution monitoring: CTQ控制措施 - 執行監督\n* Are the 7 CTQ risks identified being monitored and tracked in production? 已識別的 7 項 CTQ 風險是否在生產中得到監督和跟蹤？\n* Are the QC findings entered into the T1 quality system and monitored? QC 的檢驗結果是否錄入 T1 品質系統進行監督？\n+ Defect Rate Tracking & Control measure adjustment: CTQ 不良率追蹤與控制措施調整\n* Is the defect trend reviewed by the supervisor/quality team in a timely manner to ensure prompt action? 主管 / 品質團隊是否及時審查不良趨勢，以確保採取迅速行動？\n* Are further adjustments in control measures being made when the defined control measure is proven inefficient? 當既定的控制措施被證明效果不佳時，是否對控制措施进行了進一步調整？\n+ Sample materials lab test: 樣品材料實驗室\n* All sample materials and components are laboratory tested and comply with the latest Adidas standards.\n所有原材料以及部件的測試都需要符合阿迪達斯的最新要求樣字\n* If the inventory sample material is used for more than three months, it must be tested again, and can be used again after passed.\n庫存材料超出三個月以上要重用就需要重新拿去測試，合格後方可繼續使用\n+ Clear records: 清晰記錄\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況",
-                        weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: []
-                    },
-                    {
-                        id: "qam_7_6", code: "7.6",
-                        topic: "EXECUTION",
-                        question: "Is there a procedure to transfer approved samples to mass production with full information and clear records?\n執行: 是否有一个程序將確認的樣品鞋轉交到量產部門，並提供完整的資訊和清晰的記錄？",
-                        expectation: "Yes:\n+ Procedure of transferring samples: 樣品轉交流程\n* The document is available showing clear steps, requirements and roles & responsibilities of relevant people in Sample room, Production, Quality, etc.\n該文檔明確指示了樣品室、生產、品質等專門部門人員的樣品轉交方式、以及相應的要求和職責\n* Content of the procedure is aligned with adidas latest requirements. 該流程的內容與阿迪達斯的最新要求一致\n+ Full information: 完整資訊\n* Transfer package includes Approved Samples with identifications, Technical information, Notice of potential quality risks, Sritical points to control in mass production, etc.\n轉修技術包裹包括博得確認樣品，相關技術資料、產前品质風險評估資訊、量產工程中需要特別管控的品質要點等\n* Any changes after transferring must be notified to relevant people in time. 轉移技術包如果有任何後續修改的資訊變更，必需及時通知相關人\n+ Records: Transfer information for all samples are recorded and retained for at least 2 years. 記錄：記錄所有樣品鞋的轉交資訊，並保存至少 2 年\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況",
-                        weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: []
-                    }
+                    { id: "qam_7_1", code: "7.1", topic: "FACILITY CONDITION", question: "Is Sample room well-maintained and organized?\n設施: 樣品室是否維護良好及擺放有序？", expectation: "Yes:\n+ Clean, no mold, temp/humidity logged, metal-free policy.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_7_2", code: "7.2", topic: "EXECUTION", question: "Are procedures/SOP for making samples properly carried out?\n執行: 是否正確執行製作樣品的程式 / SOP？", expectation: "Yes:\n+ Technicians trained on technical packages.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_7_3", code: "7.3", topic: "EXECUTION", question: "Is marker making process well managed with proper equipment?\n執行: 紙樣製作過程是否有適當的設備进行妥善管理？", expectation: "Yes:\n+ System in place to measure graded patterns.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_7_4", code: "7.4", topic: "INSPECTION", question: "Are sample inspection areas clean with light, space, and calibrated tools?\n檢驗: 樣品檢驗區域是否清潔，有足夠空間，750-1000 Lux光線？", expectation: "Yes:\n+ Calibrated tools used; tech specs available.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_7_5", code: "7.5", topic: "INSPECTION", question: "Are sample inspection activities properly carried out according to SOP?\n檢驗: 樣品檢驗是否按照規定的程式正確進行？", expectation: "Yes:\n+ QCs understand procedures; lab tests pass.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_7_6", code: "7.6", topic: "EXECUTION", question: "Is there a procedure to transfer approved samples to mass production?\n執行: 是否有程序將確認的樣品鞋轉交到量產部門？", expectation: "Yes:\n+ Tech transfer package includes risk notice and critical points.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] }
                 ]
             },
             {
-                id: "sec_8",
-                code: "8",
-                name: "品質培訓",
-                nameEn: "Quality Training",
+                id: "sec_8", code: "8", name: "品質培訓", nameEn: "Quality Training",
                 items: [
-                    {
-                        id: "qam_8_1", code: "8.1",
-                        topic: "EXECUTION",
-                        question: "Is there a system contains adequate training topics for new QC and existing QC personnels?\n執行: 是否有一个系統為新 QC 和現有 QC 提供足夠的培訓項目？",
-                        expectation: "Yes:\n+ Training system: 培訓系統\n* Is there a system that provides quality trainings and assessment for new QC personnels, or any upskilling trainings for existing QC personnels.\n是否有一個系統為新進 QC 人員進行品質教育培訓和評估，或為現有 QC 人員進行任何技能提升的培訓\n* A schedule clearly states the steps & duration of training / refresh trainings. 時間表清楚地說明了培訓 / 恢復培訓的計畫和持續時間\n* There is a clear final assessment after training with evaluation. 培訓結束後有一个清晰透明的，公平公正的最終評估\n* Whether it is theoretical or operational training, the scoring needs to be based on sources, such as: theoretical exams have paper scoring, the operation also needs to design different scoring methods for different types of work.\n無論是理論培訓還是操作培訓，評分都需要依據來源，如：理論考試有紙本評分，操作方面也需要針對不同類型的作業設計不同的評分方法\n* Solutions in case of assessment failure is implemented (ex: retraining, reassessment, rejection, etc)\n評估可分等級，重點關注表現優秀人員可作為未來晉升/培養的參考\n在評估不合格的情況下實施解決方案（例如：再培訓，重新評估，其餘工作上的安排...等）\nNO:\nAny non-compliance found during review or factory does not have a dedicated area for training center. 檢視期間發現的任何不合規情况，或是工廠未有設合適的培訓中心\n",
-                        weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: []
-                    },
-                    {
-                        id: "qam_8_2", code: "8.2",
-                        topic: "EXECUTION",
-                        question: "Has the training program content been appropriately designed and planned?\n執行: 培訓項目的具體內容是否經過了恰当的設計和規劃？",
-                        expectation: "Yes:\n+ Training content: 培訓內容\n* The content of training program has been designed properly for all job description in the production process (Quality inspection and control process). 培訓的內容針對所有生產過程中相關的工作崗位（品質檢驗與管控流程）進行了適當設計和規劃\n* Training content must include at least: Technical knowledge of the process & its type of training (in class / on the job training / in training center / etc), quality standards, reaction in case of quality issues. (accurately familiar with and master all relevant product quality acceptance standards)\n培訓內容必須至少包括：工藝技術流程知識及其培訓類型（課堂/在職培訓/培訓中心等），品質標準，對質量問題的反饋（準確熟悉並掌握所有相關產品的品質允收標準）。\n* Adidas latest quality policy training, such as Q-KPI, QAR, CR, CTQ, mold prevention, metal detection, metal tool control and related policy training.\n品牌最新的品質政策培訓，比如：Q-KPI，QAR，CTQ，CR，防黴，金屬檢測以及金屬工具管制以及其他相關政策培訓\n+ All assessment reports and scores are retained for minimum 12 months. 所有評估報告和分數至少保存 12 個月\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況",
-                        weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: []
-                    },
-                    {
-                        id: "qam_8_3", code: "8.3",
-                        topic: "EXECUTION",
-                        question: "Is the certified trainee's assigned job responsibilities aligned with their trained skills?\n執行: 經過認證的培訓人員被分配的工作崗位是否與他們所培訓的技能相一致？",
-                        expectation: "Yes:\n+ Job responsibilities aligned with trained skills: 工作崗位與技能培訓相一致\n* Training schedule is planned & aligned with defined production need. 培訓計畫與生產需求保持一致\n* Skill matrix or training records are available and matched with trainee's tasks assignment.\n提供培訓的相關技術模型用於專業技能的培訓，與受訓者的工作崗位一致\n* If there is any gaps in the training process, training plan will be updated to meet actual production requirements.\n如果培訓過程中存在任何差距，將更新培訓計畫以滿足實際生產要求\n+ Regular training for special jobs: 特殊工作崗位定期培訓\n* Safety protection of chemical operators, as well as training on proper use and operating standards.\n化學品使用人員安全防護以及使用和操作標準等相關課程的培訓\n* Proper application of personal safety protection and relevant protective facilities, as well as training in fire safety, environmental protection, and other related courses.\n個人的安全保護和相關保護設施的正確認用以及消防，環保等相關課程的培訓\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況",
-                        weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: []
-                    },
-                    {
-                        id: "qam_8_4", code: "8.4",
-                        topic: "INSPECTION EQUIPMENT / TOOLS",
-                        question: "Is the training center well-equipped with all neccesary inspection equipment/tools serving all product checking?\n檢驗設備/工具: 培訓中心是否配備了所有必要的檢驗設備 / 工具，以滿足所有產品？",
-                        expectation: "Yes:\n+ Well-equipped: 設備齊全\n* The inspection equipment / tools types and quantity in the area can adapt with training needs of the factory.\n該區域的檢驗設備 / 工具的種類和數量可以適應及符合工廠的培訓需要\n* All inspection equipment / tools are well maintained with clear schedule. 所有用於培訓的檢驗設備 / 工具都有清晰的維護及保養記錄\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況",
-                        weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: []
-                    }
+                    { id: "qam_8_1", code: "8.1", topic: "EXECUTION", question: "Is there a system containing adequate training topics for new and existing QCs?\n執行: 是否有系統為新 QC 和現有 QC 提供足夠的培訓項目？", expectation: "Yes:\n+ Assessment records and refresh training schedule available.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_8_2", code: "8.2", topic: "EXECUTION", question: "Has the training program content been appropriately designed and planned?\n執行: 培訓項目的具體內容是否經過了恰当的設計和規劃？", expectation: "Yes:\n+ Technical standards, Q-KPI, QAR, CTQ, A0477 mold training included.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_8_3", code: "8.3", topic: "EXECUTION", question: "Is the certified trainee's assigned job aligned with trained skills?\n執行: 經過認證的培訓人員被分配的工作崗位是否与技能相符？", expectation: "Yes:\n+ Skill matrix matched with job task assignment.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_8_4", code: "8.4", topic: "INSPECTION EQUIPMENT / TOOLS", question: "Is the training center well-equipped with inspection equipment/tools?\n檢驗設備/工具: 培訓中心是否配備了所有必要的檢驗設備/工具？", expectation: "Yes:\n+ Inspection tools maintained with clear PM schedule.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] }
                 ]
             }
         ];
@@ -957,10 +562,10 @@
         // System State Store
         let auditData = {
             meta: {
-                factory: "EVK 鞋業一廠",
-                auditor: "QAM 稽核小組",
+                factory: "EVK 鞋业一厂",
+                auditor: "QAM 稽核小组",
                 date: new Date().toISOString().split('T')[0],
-                line: "綜合生產線"
+                line: "综合生产线"
             },
             sections: JSON.parse(JSON.stringify(initialQAMSections))
         };
@@ -994,28 +599,49 @@
         }
 
         function saveToLocalStorage() {
-            localStorage.setItem('QAM_AUDIT_STATE_ALL15', JSON.stringify(auditData));
+            localStorage.setItem('QAM_AUDIT_STATE_FULL_V5', JSON.stringify(auditData));
         }
 
         function loadFromLocalStorage() {
-            const saved = localStorage.getItem('QAM_AUDIT_STATE_ALL15');
+            const saved = localStorage.getItem('QAM_AUDIT_STATE_FULL_V5');
             if (saved) {
                 try {
-                    auditData = JSON.parse(saved);
+                    const parsed = JSON.parse(saved);
+                    if (parsed && parsed.sections && parsed.sections.length === initialQAMSections.length) {
+                        // Merge saved user results into initial template to guarantee all items exist
+                        initialQAMSections.forEach(templateSec => {
+                            const savedSec = parsed.sections.find(s => s.id === templateSec.id);
+                            if (savedSec) {
+                                templateSec.items.forEach(templateItem => {
+                                    const savedItem = savedSec.items.find(i => i.id === templateItem.id);
+                                    if (savedItem) {
+                                        templateItem.result = savedItem.result || 'PENDING';
+                                        templateItem.finding = savedItem.finding || '';
+                                        templateItem.actionPlan = savedItem.actionPlan || '';
+                                        templateItem.pic = savedItem.pic || '';
+                                        templateItem.targetDate = savedItem.targetDate || '';
+                                        templateItem.photos = savedItem.photos || [];
+                                    }
+                                });
+                            }
+                        });
+                        auditData.meta = parsed.meta || auditData.meta;
+                        auditData.sections = initialQAMSections;
+                    }
                 } catch(e) {
-                    console.error("Failed to load local storage", e);
+                    console.error("Failed to load local storage, using fresh default.", e);
                 }
             }
         }
 
         function resetAuditConfirm() {
-            if (confirm("⚠️ 確定要重置當前稽核數據嗎？所有結果將恢復為15大項初始狀態。")) {
+            if (confirm("⚠️ 确定要重置当前稽核数据吗？所有评估结果将清空并恢复至初始状态。")) {
                 auditData.sections = JSON.parse(JSON.stringify(initialQAMSections));
                 saveToLocalStorage();
                 renderTabs();
                 renderActiveSection();
                 updateDashboard();
-                showToast("系統數據已成功重置");
+                showToast("系统数据已成功重置");
             }
         }
 
@@ -1087,7 +713,7 @@
                 container.innerHTML = `
                     <div class="bg-white rounded-2xl p-8 text-center text-slate-400 border border-slate-200">
                         <i class="fa-solid fa-folder-open text-3xl mb-2"></i>
-                        <p class="text-xs">該篩選條件下暫無稽核項</p>
+                        <p class="text-xs">该筛选条件下暂无稽核项</p>
                     </div>
                 `;
                 return;
@@ -1139,7 +765,7 @@
                         <summary class="font-semibold text-slate-700 cursor-pointer flex justify-between items-center select-none">
                             <span class="flex items-center space-x-1.5">
                                 <i class="fa-solid fa-book-open text-sky-600"></i>
-                                <span>點擊展開：QAM 說明與標準 (EXPLANATION / Expectations)</span>
+                                <span>点击展开：QAM 评估标准与期望 (EXPLANATION / Expectations)</span>
                             </span>
                             <i class="fa-solid fa-chevron-down group-open:rotate-180 transition-transform"></i>
                         </summary>
@@ -1153,31 +779,31 @@
                         <div class="bg-rose-50/60 rounded-xl p-4 border border-rose-200 space-y-3">
                             <h5 class="text-xs font-bold text-rose-800 flex items-center space-x-1">
                                 <i class="fa-solid fa-circle-exclamation"></i>
-                                <span>不符合整改任務登記 (Defect & CAPA)</span>
+                                <span>不符合整改任务登记 (Defect & CAPA)</span>
                             </h5>
                             
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <div>
-                                    <label class="block text-[11px] font-semibold text-slate-600 mb-1">問題描述 / Finding</label>
-                                    <textarea rows="2" onchange="updateItemField('${section.id}', '${item.id}', 'finding', this.value)" class="w-full bg-white border border-rose-200 rounded-lg p-2 text-xs focus:ring-2 focus:ring-rose-500 focus:outline-none" placeholder="詳細描述發現的品質/防黴缺陷...">${item.finding || ''}</textarea>
+                                    <label class="block text-[11px] font-semibold text-slate-600 mb-1">问题描述 / Finding</label>
+                                    <textarea rows="2" oninput="updateItemField('${section.id}', '${item.id}', 'finding', this.value)" class="w-full bg-white border border-rose-200 rounded-lg p-2 text-xs focus:ring-2 focus:ring-rose-500 focus:outline-none" placeholder="详细描述发现的品质/防霉缺陷...">${item.finding || ''}</textarea>
                                 </div>
                                 <div>
                                     <label class="block text-[11px] font-semibold text-slate-600 mb-1">改善方案 / Action Plan</label>
-                                    <textarea rows="2" onchange="updateItemField('${section.id}', '${item.id}', 'actionPlan', this.value)" class="w-full bg-white border border-rose-200 rounded-lg p-2 text-xs focus:ring-2 focus:ring-rose-500 focus:outline-none" placeholder="描述矯正預防措施 (CAPA)...">${item.actionPlan || ''}</textarea>
+                                    <textarea rows="2" oninput="updateItemField('${section.id}', '${item.id}', 'actionPlan', this.value)" class="w-full bg-white border border-rose-200 rounded-lg p-2 text-xs focus:ring-2 focus:ring-rose-500 focus:outline-none" placeholder="描述矫正预防措施 (CAPA)...">${item.actionPlan || ''}</textarea>
                                 </div>
                             </div>
 
                             <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
                                 <div>
-                                    <label class="block text-[11px] font-semibold text-slate-600 mb-1">責任人 / PIC</label>
-                                    <input type="text" value="${item.pic || ''}" onchange="updateItemField('${section.id}', '${item.id}', 'pic', this.value)" class="w-full bg-white border border-rose-200 rounded-lg px-2 py-1.5 text-xs" placeholder="責任部門/人員">
+                                    <label class="block text-[11px] font-semibold text-slate-600 mb-1">责任人 / PIC</label>
+                                    <input type="text" value="${item.pic || ''}" oninput="updateItemField('${section.id}', '${item.id}', 'pic', this.value)" class="w-full bg-white border border-rose-200 rounded-lg px-2 py-1.5 text-xs" placeholder="责任部门/人员">
                                 </div>
                                 <div>
-                                    <label class="block text-[11px] font-semibold text-slate-600 mb-1">預計完成時間</label>
-                                    <input type="date" value="${item.targetDate || ''}" onchange="updateItemField('${section.id}', '${item.id}', 'targetDate', this.value)" class="w-full bg-white border border-rose-200 rounded-lg px-2 py-1.5 text-xs">
+                                    <label class="block text-[11px] font-semibold text-slate-600 mb-1">预计完成时间</label>
+                                    <input type="date" value="${item.targetDate || ''}" oninput="updateItemField('${section.id}', '${item.id}', 'targetDate', this.value)" class="w-full bg-white border border-rose-200 rounded-lg px-2 py-1.5 text-xs">
                                 </div>
                                 <div>
-                                    <label class="block text-[11px] font-semibold text-slate-600 mb-1">現場拍照 (Photo Attach)</label>
+                                    <label class="block text-[11px] font-semibold text-slate-600 mb-1">现场拍照 (Photo Attach)</label>
                                     <input type="file" accept="image/*" onchange="handlePhotoUpload('${section.id}', '${item.id}', event)" class="w-full text-xs text-slate-500 file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-rose-100 file:text-rose-700 hover:file:bg-rose-200">
                                 </div>
                             </div>
@@ -1187,7 +813,7 @@
                                     ${item.photos.map((img, idx) => `
                                         <div class="relative group w-14 h-14 border rounded-lg overflow-hidden bg-slate-100">
                                             <img src="${img}" class="w-full h-full object-cover">
-                                            <button onclick="removePhoto('${section.id}', '${item.id}', ${idx})" class="absolute inset-0 bg-slate-900/60 text-white text-xs opacity-0 group-hover:opacity-100 flex items-center justify-center transition">&times; 刪除</button>
+                                            <button onclick="removePhoto('${section.id}', '${item.id}', ${idx})" class="absolute inset-0 bg-slate-900/60 text-white text-xs opacity-0 group-hover:opacity-100 flex items-center justify-center transition">&times; 删除</button>
                                         </div>
                                     `).join('')}
                                 </div>
@@ -1257,7 +883,7 @@
         }
 
         function batchMarkAllYes() {
-            if (confirm("確定要將當前所有項目的評估結果批量標為 [YES 符合] 嗎？")) {
+            if (confirm("确定要将当前所有项目的评估结果批量标为 [YES 符合] 吗？")) {
                 auditData.sections.forEach(sec => {
                     sec.items.forEach(item => {
                         item.result = 'YES';
@@ -1267,7 +893,7 @@
                 renderTabs();
                 renderActiveSection();
                 updateDashboard();
-                showToast("已一鍵將所有未稽核項標為 YES");
+                showToast("已一键将所有未稽核项标为 YES");
             }
         }
 
@@ -1317,19 +943,19 @@
             // Grade Classification
             const badge = document.getElementById('grade-badge');
             if (overallScore >= 90) {
-                badge.innerText = "A 級 (優秀)";
+                badge.innerText = "A 级 (优秀)";
                 badge.className = "px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30";
             } else if (overallScore >= 80) {
-                badge.innerText = "B 級 (良好)";
+                badge.innerText = "B 级 (良好)";
                 badge.className = "px-3 py-1 rounded-full text-xs font-bold bg-sky-500/20 text-sky-300 border border-sky-500/30";
             } else if (overallScore >= 70) {
-                badge.innerText = "C 級 (合格)";
+                badge.innerText = "C 级 (合格)";
                 badge.className = "px-3 py-1 rounded-full text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30";
             } else if (overallScore >= 60) {
                 badge.innerText = "D 级 (需改善)";
                 badge.className = "px-3 py-1 rounded-full text-xs font-bold bg-orange-500/20 text-orange-300 border border-orange-500/30";
             } else {
-                badge.innerText = "F 級 (不合格)";
+                badge.innerText = "F 级 (不合格)";
                 badge.className = "px-3 py-1 rounded-full text-xs font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30";
             }
 
@@ -1386,12 +1012,12 @@
                         tr.innerHTML = `
                             <td class="py-2 px-3 font-bold text-slate-800">${item.code}</td>
                             <td class="py-2 px-3 text-slate-600">${sec.name}</td>
-                            <td class="py-2 px-3 text-rose-700 font-medium">${item.finding || '未填寫缺陷描述'}</td>
-                            <td class="py-2 px-3 text-slate-700">${item.actionPlan || '未填寫整改方案'}</td>
+                            <td class="py-2 px-3 text-rose-700 font-medium">${item.finding || '未填写缺陷描述'}</td>
+                            <td class="py-2 px-3 text-slate-700">${item.actionPlan || '未填写整改方案'}</td>
                             <td class="py-2 px-3 text-slate-600">${item.pic || '-'}</td>
                             <td class="py-2 px-3 text-slate-600">${item.targetDate || '-'}</td>
                             <td class="py-2 px-3 text-center">
-                                ${item.photos && item.photos.length > 0 ? `<span class="text-xs bg-emerald-100 text-emerald-800 font-semibold px-2 py-0.5 rounded">有照片(${item.photos.length})</span>` : '<span class="text-slate-400">無</span>'}
+                                ${item.photos && item.photos.length > 0 ? `<span class="text-xs bg-emerald-100 text-emerald-800 font-semibold px-2 py-0.5 rounded">有照片(${item.photos.length})</span>` : '<span class="text-slate-400">无</span>'}
                             </td>
                         `;
 
@@ -1400,11 +1026,11 @@
                 });
             });
 
-            document.getElementById('capa-count-badge').innerText = `${noItemsCount} 項待改善`;
+            document.getElementById('capa-count-badge').innerText = `${noItemsCount} 项待改善`;
             if (noItemsCount === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="7" class="py-4 text-center text-slate-400">🎉 暫無不符合項，生產流程與品質完全達標。</td>
+                        <td colspan="7" class="py-4 text-center text-slate-400">🎉 暂无不符合项，生产流程与品质完全达标。</td>
                     </tr>
                 `;
             }
@@ -1456,81 +1082,145 @@
             });
         }
 
-        function exportToExcel() {
-            const rows = [];
-            rows.push(["Module Code", "Section Name", "Item Code", "Topic", "Question", "Expectation Standard", "Result (YES/NO/NA)", "Finding / Defect", "Action Plan (CAPA)", "PIC", "Target Completion Date"]);
+        async function exportToExcel() {
+            showToast("正在生成包含图片的 Excel 报告，请稍候...");
 
-            auditData.sections.forEach(sec => {
-                sec.items.forEach(item => {
-                    rows.push([
-                        sec.code,
-                        sec.name,
-                        item.code,
-                        item.topic,
-                        item.question,
-                        item.expectation,
-                        item.result,
-                        item.finding || '',
-                        item.actionPlan || '',
-                        item.pic || '',
-                        item.targetDate || ''
-                    ]);
-                });
-            });
+            try {
+                const workbook = new ExcelJS.Workbook();
+                
+                // Worksheet 1: 完整稽核明细
+                const ws1 = workbook.addWorksheet('QAM完整稽核明细');
+                
+                // Set columns
+                ws1.columns = [
+                    { header: '模块代码', key: 'secCode', width: 12 },
+                    { header: '稽核模块名称', key: 'secName', width: 30 },
+                    { header: '项目编号', key: 'itemCode', width: 12 },
+                    { header: '主题 Topic', key: 'topic', width: 25 },
+                    { header: '稽核问题 Question', key: 'question', width: 35 },
+                    { header: '评估期望标准 Standard', key: 'expectation', width: 45 },
+                    { header: '评估结果 (Result)', key: 'result', width: 18 },
+                    { header: '缺陷描述 (Finding)', key: 'finding', width: 30 },
+                    { header: '整改方案 (CAPA)', key: 'actionPlan', width: 30 },
+                    { header: '责任人 (PIC)', key: 'pic', width: 15 },
+                    { header: '预估完成日期', key: 'targetDate', width: 15 },
+                    { header: '现场照片 (Photo)', key: 'photoCol', width: 22 }
+                ];
 
-            const ws = XLSX.utils.aoa_to_sheet(rows);
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "QAM_Process_Audit");
+                // Style header row
+                ws1.getRow(1).font = { bold: true, color: { argb: 'FFFFFF' } };
+                ws1.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '0F172A' } };
+                ws1.getRow(1).height = 25;
 
-            const fileName = `QAM_Process_Audit_${auditData.meta.factory}_${auditData.meta.date}.xlsx`;
-            XLSX.writeFile(wb, fileName);
-            showToast("已成功導出 Excel 報告！");
-        }
+                let rowIndex = 2;
 
-        function importFromExcel(event) {
-            const file = event.target.files[0];
-            if (!file) return;
-
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                try {
-                    const data = new Uint8Array(e.target.result);
-                    const workbook = XLSX.read(data, { type: 'array' });
-                    const sheetName = workbook.SheetNames[0];
-                    const json = XLSX.utils.sheet_to_json(workbook.Sheets[sheetName]);
-
-                    if (json.length > 0) {
-                        json.forEach(row => {
-                            const itemCode = row["Item Code"];
-                            const result = row["Result (YES/NO/NA)"];
-                            const finding = row["Finding / Defect"];
-                            const actionPlan = row["Action Plan (CAPA)"];
-                            const pic = row["PIC"];
-                            const targetDate = row["Target Completion Date"];
-
-                            auditData.sections.forEach(sec => {
-                                const matched = sec.items.find(i => i.code === itemCode);
-                                if (matched) {
-                                    if (result) matched.result = result;
-                                    if (finding) matched.finding = finding;
-                                    if (actionPlan) matched.actionPlan = actionPlan;
-                                    if (pic) matched.pic = pic;
-                                    if (targetDate) matched.targetDate = targetDate;
-                                }
-                            });
+                for (const sec of auditData.sections) {
+                    for (const item of sec.items) {
+                        const row = ws1.addRow({
+                            secCode: sec.code,
+                            secName: sec.name,
+                            itemCode: item.code,
+                            topic: item.topic,
+                            question: item.question,
+                            expectation: item.expectation,
+                            result: item.result,
+                            finding: item.finding || '',
+                            actionPlan: item.actionPlan || '',
+                            pic: item.pic || '',
+                            targetDate: item.targetDate || '',
+                            photoCol: ''
                         });
 
-                        saveToLocalStorage();
-                        renderTabs();
-                        renderActiveSection();
-                        updateDashboard();
-                        showToast("導入 Excel 成功！數據已同步。");
+                        row.alignment = { vertical: 'top', wrapText: true };
+
+                        // If photo attached, embed it directly into the Excel cell
+                        if (item.photos && item.photos.length > 0) {
+                            row.height = 90; // expand row height for thumbnail
+                            
+                            for (let pIdx = 0; pIdx < item.photos.length; pIdx++) {
+                                const photoBase64 = item.photos[pIdx];
+                                const imageId = workbook.addImage({
+                                    base64: photoBase64,
+                                    extension: photoBase64.includes('image/png') ? 'png' : 'jpeg',
+                                });
+
+                                ws1.addImage(imageId, {
+                                    tl: { col: 11, row: rowIndex - 1 },
+                                    ext: { width: 110, height: 80 }
+                                });
+                            }
+                        } else {
+                            row.height = 40;
+                        }
+
+                        rowIndex++;
                     }
-                } catch(err) {
-                    alert("導入失敗，請確保格式正確: " + err.message);
                 }
-            };
-            reader.readAsArrayBuffer(file);
+
+                // Worksheet 2: CAPA整改追踪表
+                const ws2 = workbook.addWorksheet('CAPA不符合项整改追踪');
+                ws2.columns = [
+                    { header: '项目编号', key: 'itemCode', width: 12 },
+                    { header: '所属模块', key: 'secName', width: 25 },
+                    { header: '不符合缺陷问题 (Finding)', key: 'finding', width: 35 },
+                    { header: '改善方案 (Action Plan)', key: 'actionPlan', width: 35 },
+                    { header: '责任人 (PIC)', key: 'pic', width: 15 },
+                    { header: '预估完成日期', key: 'targetDate', width: 15 },
+                    { header: '现场照片', key: 'photoCol', width: 22 }
+                ];
+
+                ws2.getRow(1).font = { bold: true, color: { argb: 'FFFFFF' } };
+                ws2.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '991B1B' } };
+                ws2.getRow(1).height = 25;
+
+                let capaRowIndex = 2;
+                auditData.sections.forEach(sec => {
+                    sec.items.forEach(item => {
+                        if (item.result === 'NO') {
+                            const cRow = ws2.addRow({
+                                itemCode: item.code,
+                                secName: sec.name,
+                                finding: item.finding || '未填写',
+                                actionPlan: item.actionPlan || '未填写',
+                                pic: item.pic || '-',
+                                targetDate: item.targetDate || '-',
+                                photoCol: ''
+                            });
+
+                            cRow.alignment = { vertical: 'top', wrapText: true };
+
+                            if (item.photos && item.photos.length > 0) {
+                                cRow.height = 90;
+                                const photoBase64 = item.photos[0];
+                                const imageId = workbook.addImage({
+                                    base64: photoBase64,
+                                    extension: photoBase64.includes('image/png') ? 'png' : 'jpeg',
+                                });
+
+                                ws2.addImage(imageId, {
+                                    tl: { col: 6, row: capaRowIndex - 1 },
+                                    ext: { width: 110, height: 80 }
+                                });
+                            } else {
+                                cRow.height = 40;
+                            }
+
+                            capaRowIndex++;
+                        }
+                    });
+                });
+
+                // Write to Buffer & Trigger Save
+                const buffer = await workbook.xlsx.writeBuffer();
+                const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                const fileName = `QAM_Audit_Report_${auditData.meta.factory}_${auditData.meta.date}.xlsx`;
+                saveAs(blob, fileName);
+
+                showToast("包含图片的 Excel 报告已成功导出！");
+            } catch(e) {
+                console.error("Excel Export Failed", e);
+                alert("导出失败，请检查数据格式: " + e.message);
+            }
         }
 
         function openEditorModal() {
@@ -1595,7 +1285,7 @@
                 saveToLocalStorage();
                 renderActiveSection();
                 closeEditorModal();
-                showToast("稽核項編輯成功！");
+                showToast("稽核项编辑成功！");
             }
         }
 
