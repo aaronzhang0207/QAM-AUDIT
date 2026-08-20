@@ -40,11 +40,16 @@
             border-radius: 4px;
         }
 
+        /* Printable PDF Layout Optimization */
         @media print {
             .no-print { display: none !important; }
             .print-only { display: block !important; }
-            body { background: white; color: black; }
+            body { background: white !important; color: black !important; font-size: 10px !important; }
             .print-page-break { page-break-before: always; }
+            .avoid-break { page-break-inside: avoid; }
+            table { width: 100% !important; border-collapse: collapse !important; }
+            th, td { border: 1px solid #94a3b8 !important; padding: 4px 6px !important; }
+            img { max-height: 80px !important; width: auto !important; object-fit: contain !important; }
         }
         
         .print-only { display: none; }
@@ -61,18 +66,18 @@
                 </div>
                 <div>
                     <h1 class="font-bold text-lg sm:text-xl leading-tight">QAM Digital Audit System</h1>
-                    <p class="text-xs text-sky-400 font-medium">QAM 数字化质量与防霉稽核系统 (15大项完整版)</p>
+                    <p class="text-xs text-sky-400 font-medium">QAM 数字化质量与防霉稽核系统 (全大项与多格式导出增强版)</p>
                 </div>
             </div>
 
             <div class="flex items-center space-x-2">
                 <button onclick="exportToExcel()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1 transition shadow-sm">
                     <i class="fa-solid fa-file-excel"></i>
-                    <span class="hidden md:inline">导出 Excel (含图片)</span>
+                    <span class="hidden md:inline">导出 Excel (含全量照片)</span>
                 </button>
-                <button onclick="window.print()" class="bg-slate-700 hover:bg-slate-600 text-white px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1 transition shadow-sm">
-                    <i class="fa-solid fa-print"></i>
-                    <span class="hidden md:inline">打印报告</span>
+                <button onclick="triggerPDFExport()" class="bg-sky-600 hover:bg-sky-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1 transition shadow-sm">
+                    <i class="fa-solid fa-file-pdf"></i>
+                    <span class="hidden md:inline">导出完整 PDF 报告</span>
                 </button>
                 <button onclick="openEditorModal()" class="bg-amber-600 hover:bg-amber-500 text-white px-3 py-1.5 rounded-lg text-xs font-semibold flex items-center space-x-1 transition shadow-sm">
                     <i class="fa-solid fa-sliders"></i>
@@ -133,7 +138,7 @@
                         <span id="overall-score-display" class="text-5xl font-extrabold tracking-tight text-white">100.0</span>
                         <span class="text-xl font-semibold text-slate-400">%</span>
                     </div>
-                    <p class="text-xs text-slate-400 mt-1" id="score-calculation-note">包含 15 个主要稽核模块 (共80项)</p>
+                    <p class="text-xs text-slate-400 mt-1" id="score-calculation-note">包含 15 个主要稽核模块 (共80+项小项)</p>
                 </div>
 
                 <!-- Mini Progress Breakdown -->
@@ -244,12 +249,12 @@
         </section>
     </main>
 
-    <!-- PRINT REPORT VIEW (ONLY VISIBLE WHEN PRINTING) -->
+    <!-- PRINT / PDF REPORT VIEW (INCLUDES FULL CHECKLIST & DETAILED AUDIT DATA) -->
     <div class="print-only p-8 max-w-4xl mx-auto space-y-6">
         <div class="border-b-2 border-slate-900 pb-4 flex justify-between items-end">
             <div>
-                <h1 class="text-2xl font-bold uppercase text-slate-900">QAM 质量与防霉稽核报告</h1>
-                <p class="text-xs text-slate-600">QAM Manufacturing & Anti-Mold Audit Formal Report</p>
+                <h1 class="text-2xl font-bold uppercase text-slate-900">QAM 质量与防霉稽核完整报告</h1>
+                <p class="text-xs text-slate-600">QAM Comprehensive Quality & Anti-Mold Audit Formal Report</p>
             </div>
             <div class="text-right">
                 <span class="text-xs text-slate-500 block">报告生成日期: <span id="print-report-date"></span></span>
@@ -266,17 +271,17 @@
             <div><strong>稽核区域:</strong> <span id="print-meta-line">-</span></div>
         </div>
 
-        <div>
+        <div class="avoid-break">
             <h3 class="font-bold text-sm mb-2 text-slate-900 border-b pb-1">一、 综合评估得分 (Audit Scoring Summary)</h3>
             <div class="flex items-center justify-between bg-slate-100 p-4 rounded-lg">
                 <div>
-                    <span class="text-xs text-slate-500 block uppercase font-bold">QAM Final Score</span>
+                    <span class="text-xs text-slate-500 block uppercase font-bold">QAM Overall Rating Score</span>
                     <span id="print-overall-score" class="text-4xl font-extrabold text-slate-900">100.0%</span>
                 </div>
             </div>
         </div>
 
-        <div>
+        <div class="avoid-break">
             <h3 class="font-bold text-sm mb-2 text-slate-900 border-b pb-1">二、 15大模块得分明细 (Section Breakdown)</h3>
             <table class="w-full text-xs text-left border border-slate-300 border-collapse">
                 <thead>
@@ -294,7 +299,14 @@
         </div>
 
         <div>
-            <h3 class="font-bold text-sm mb-2 text-slate-900 border-b pb-1">三、 不符合项改善追踪表 (CAPA Action Plan)</h3>
+            <h3 class="font-bold text-sm mb-2 text-slate-900 border-b pb-1">三、 完整稽核项目明细清单 (Full Detailed Audit Checklist)</h3>
+            <div id="print-full-checklist-container" class="space-y-4">
+                <!-- Dynamic All Checklist Sections Rendered Here -->
+            </div>
+        </div>
+
+        <div class="avoid-break">
+            <h3 class="font-bold text-sm mb-2 text-slate-900 border-b pb-1">四、 不符合项改善追踪表 (CAPA Action Plan)</h3>
             <table class="w-full text-xs text-left border border-slate-300 border-collapse">
                 <thead>
                     <tr class="bg-slate-200">
@@ -304,6 +316,7 @@
                         <th class="p-1.5 border border-slate-300">改善方案</th>
                         <th class="p-1.5 border border-slate-300">责任人</th>
                         <th class="p-1.5 border border-slate-300">完成期限</th>
+                        <th class="p-1.5 border border-slate-300 text-center">现场照片</th>
                     </tr>
                 </thead>
                 <tbody id="print-capa-table">
@@ -366,6 +379,25 @@
         </div>
     </div>
 
+    <!-- PDF Guidance Modal -->
+    <div id="pdf-guide-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 no-print">
+        <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 text-center space-y-4">
+            <div class="w-12 h-12 bg-sky-100 text-sky-600 rounded-full flex items-center justify-center mx-auto text-xl">
+                <i class="fa-solid fa-file-pdf"></i>
+            </div>
+            <h3 class="font-bold text-slate-900 text-base">导出完整 PDF 报告指南</h3>
+            <p class="text-xs text-slate-600 leading-relaxed text-left bg-slate-50 p-3 rounded-lg border border-slate-200">
+                1. 点击下方【确定并继续】后将打开系统预览与打印窗口。<br>
+                2. 在弹出的打印设置中，将<b>【目标打印机 / Destination】</b>切换选为<b>【另存为 PDF / Save as PDF】</b>。<br>
+                3. 点击【保存】，即可在本地生成包含整体得分、15大模块明细、<b>全部稽核细则及现场照片</b>的完整 PDF 报告文件。
+            </p>
+            <div class="flex justify-center space-x-2 pt-2">
+                <button onclick="closePDFModal()" class="px-4 py-2 text-xs bg-slate-200 hover:bg-slate-300 font-semibold rounded-lg text-slate-700">取消</button>
+                <button onclick="executePDFPrint()" class="px-4 py-2 text-xs bg-sky-600 hover:bg-sky-500 font-semibold rounded-lg text-white shadow">确定并继续</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast Container -->
     <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center space-x-3 no-print">
         <i class="fa-solid fa-circle-check text-emerald-400 text-lg"></i>
@@ -374,7 +406,7 @@
 
     <!-- Application Engine Script -->
     <script>
-        // Full QAM Audit Dataset - Complete 15 Major Sections Matched Exactly to Figure 1
+        // Full QAM Audit Dataset - Complete 15 Major Sections
         const initialQAMSections = [
             {
                 id: "sec_1_1", code: "1.1", name: "來料倉庫(原材料 / 配件 / 大底 / 化學品)", nameEn: "Incoming warehouses (Materials/Accessories/Rubber/Chemical)",
@@ -599,16 +631,15 @@
         }
 
         function saveToLocalStorage() {
-            localStorage.setItem('QAM_AUDIT_STATE_FULL_V5', JSON.stringify(auditData));
+            localStorage.setItem('QAM_AUDIT_STATE_FULL_V6', JSON.stringify(auditData));
         }
 
         function loadFromLocalStorage() {
-            const saved = localStorage.getItem('QAM_AUDIT_STATE_FULL_V5');
+            const saved = localStorage.getItem('QAM_AUDIT_STATE_FULL_V6');
             if (saved) {
                 try {
                     const parsed = JSON.parse(saved);
                     if (parsed && parsed.sections && parsed.sections.length === initialQAMSections.length) {
-                        // Merge saved user results into initial template to guarantee all items exist
                         initialQAMSections.forEach(templateSec => {
                             const savedSec = parsed.sections.find(s => s.id === templateSec.id);
                             if (savedSec) {
@@ -629,7 +660,7 @@
                         auditData.sections = initialQAMSections;
                     }
                 } catch(e) {
-                    console.error("Failed to load local storage, using fresh default.", e);
+                    console.error("Failed to load local storage", e);
                 }
             }
         }
@@ -1045,7 +1076,7 @@
 
             document.getElementById('print-overall-score').innerText = overallScore.toFixed(1) + '%';
 
-            // Print Section Table
+            // Print Section Table Summary
             const secTable = document.getElementById('print-section-table');
             secTable.innerHTML = '';
             auditData.sections.forEach(sec => {
@@ -1061,12 +1092,78 @@
                 `;
             });
 
+            // Render Full Checklist for PDF / Print Output
+            const fullChecklistContainer = document.getElementById('print-full-checklist-container');
+            fullChecklistContainer.innerHTML = '';
+
+            auditData.sections.forEach(sec => {
+                const secBlock = document.createElement('div');
+                secBlock.className = "space-y-2 mb-4 avoid-break";
+
+                let rowsHtml = '';
+                sec.items.forEach(item => {
+                    const statusText = item.result === 'YES' ? '<span class="text-emerald-700 font-bold">YES 符合</span>' :
+                                       item.result === 'NO' ? '<span class="text-rose-700 font-bold">NO 不符合</span>' :
+                                       item.result === 'NA' ? '<span class="text-slate-500 font-bold">N/A 不适用</span>' :
+                                       '<span class="text-slate-400">未评估</span>';
+
+                    let photoHtml = '';
+                    if (item.photos && item.photos.length > 0) {
+                        photoHtml = `<div class="flex space-x-2 mt-1">` + 
+                            item.photos.map(p => `<img src="${p}" class="print-photo h-16 w-16 object-cover border rounded">`).join('') + 
+                            `</div>`;
+                    }
+
+                    rowsHtml += `
+                        <tr class="border-t border-slate-200">
+                            <td class="p-2 border border-slate-300 font-bold text-center">${item.code}</td>
+                            <td class="p-2 border border-slate-300 font-semibold">${item.topic}</td>
+                            <td class="p-2 border border-slate-300 whitespace-pre-line">${item.question}</td>
+                            <td class="p-2 border border-slate-300 text-center">${statusText}</td>
+                            <td class="p-2 border border-slate-300 text-slate-700">
+                                ${item.result === 'NO' ? `
+                                    <p class="text-rose-700 font-semibold">缺陷: ${item.finding || '未填写'}</p>
+                                    <p class="text-slate-800">整改: ${item.actionPlan || '未填写'}</p>
+                                    <p class="text-slate-500">责任人: ${item.pic || '-'} | 期限: ${item.targetDate || '-'}</p>
+                                    ${photoHtml}
+                                ` : '-'}
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                secBlock.innerHTML = `
+                    <h4 class="font-bold text-xs bg-slate-200 p-1.5 border border-slate-300">${sec.code} ${sec.name} (${sec.nameEn})</h4>
+                    <table class="w-full text-xs text-left border border-slate-300 border-collapse">
+                        <thead>
+                            <tr class="bg-slate-100 font-semibold text-slate-700">
+                                <th class="p-1.5 border border-slate-300 w-12 text-center">编号</th>
+                                <th class="p-1.5 border border-slate-300 w-32">主题</th>
+                                <th class="p-1.5 border border-slate-300">稽核问题描述</th>
+                                <th class="p-1.5 border border-slate-300 w-20 text-center">评估状态</th>
+                                <th class="p-1.5 border border-slate-300 w-48">缺陷与整改/照片</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${rowsHtml}
+                        </tbody>
+                    </table>
+                `;
+
+                fullChecklistContainer.appendChild(secBlock);
+            });
+
             // Print CAPA Table
             const capaTable = document.getElementById('print-capa-table');
             capaTable.innerHTML = '';
             auditData.sections.forEach(sec => {
                 sec.items.forEach(item => {
                     if (item.result === 'NO') {
+                        let photoHtml = '-';
+                        if (item.photos && item.photos.length > 0) {
+                            photoHtml = `<img src="${item.photos[0]}" class="h-12 w-12 object-cover border rounded mx-auto">`;
+                        }
+
                         capaTable.innerHTML += `
                             <tr>
                                 <td class="p-1.5 border border-slate-300 font-bold">${item.code}</td>
@@ -1075,6 +1172,7 @@
                                 <td class="p-1.5 border border-slate-300">${item.actionPlan || '-'}</td>
                                 <td class="p-1.5 border border-slate-300">${item.pic || '-'}</td>
                                 <td class="p-1.5 border border-slate-300">${item.targetDate || '-'}</td>
+                                <td class="p-1.5 border border-slate-300 text-center">${photoHtml}</td>
                             </tr>
                         `;
                     }
@@ -1083,15 +1181,24 @@
         }
 
         async function exportToExcel() {
-            showToast("正在生成包含图片的 Excel 报告，请稍候...");
+            showToast("正在生成包含全量照片的 Excel 报告，请稍候...");
 
             try {
                 const workbook = new ExcelJS.Workbook();
                 
+                // Helper to clean Base64 data strings for ExcelJS
+                function getCleanBase64(dataUrl) {
+                    if (!dataUrl) return null;
+                    return dataUrl.replace(/^data:image\/(png|jpeg|jpg|webp);base64,/, '');
+                }
+                function getImageExt(dataUrl) {
+                    if (dataUrl && dataUrl.includes('image/png')) return 'png';
+                    return 'jpeg';
+                }
+
                 // Worksheet 1: 完整稽核明细
                 const ws1 = workbook.addWorksheet('QAM完整稽核明细');
                 
-                // Set columns
                 ws1.columns = [
                     { header: '模块代码', key: 'secCode', width: 12 },
                     { header: '稽核模块名称', key: 'secName', width: 30 },
@@ -1104,10 +1211,9 @@
                     { header: '整改方案 (CAPA)', key: 'actionPlan', width: 30 },
                     { header: '责任人 (PIC)', key: 'pic', width: 15 },
                     { header: '预估完成日期', key: 'targetDate', width: 15 },
-                    { header: '现场照片 (Photo)', key: 'photoCol', width: 22 }
+                    { header: '现场照片 (Photo)', key: 'photoCol', width: 30 }
                 ];
 
-                // Style header row
                 ws1.getRow(1).font = { bold: true, color: { argb: 'FFFFFF' } };
                 ws1.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: '0F172A' } };
                 ws1.getRow(1).height = 25;
@@ -1133,21 +1239,28 @@
 
                         row.alignment = { vertical: 'top', wrapText: true };
 
-                        // If photo attached, embed it directly into the Excel cell
                         if (item.photos && item.photos.length > 0) {
-                            row.height = 90; // expand row height for thumbnail
+                            row.height = 95;
                             
+                            // Insert all photos horizontally inside the photo cell
                             for (let pIdx = 0; pIdx < item.photos.length; pIdx++) {
                                 const photoBase64 = item.photos[pIdx];
-                                const imageId = workbook.addImage({
-                                    base64: photoBase64,
-                                    extension: photoBase64.includes('image/png') ? 'png' : 'jpeg',
-                                });
+                                const cleanB64 = getCleanBase64(photoBase64);
+                                if (!cleanB64) continue;
 
-                                ws1.addImage(imageId, {
-                                    tl: { col: 11, row: rowIndex - 1 },
-                                    ext: { width: 110, height: 80 }
-                                });
+                                try {
+                                    const imageId = workbook.addImage({
+                                        base64: cleanB64,
+                                        extension: getImageExt(photoBase64),
+                                    });
+
+                                    ws1.addImage(imageId, {
+                                        tl: { col: 11 + (pIdx * 0.8), row: rowIndex - 1 + 0.1 },
+                                        ext: { width: 100, height: 80 }
+                                    });
+                                } catch(imgErr) {
+                                    console.warn("Failed to embed image into Excel:", imgErr);
+                                }
                             }
                         } else {
                             row.height = 40;
@@ -1166,7 +1279,7 @@
                     { header: '改善方案 (Action Plan)', key: 'actionPlan', width: 35 },
                     { header: '责任人 (PIC)', key: 'pic', width: 15 },
                     { header: '预估完成日期', key: 'targetDate', width: 15 },
-                    { header: '现场照片', key: 'photoCol', width: 22 }
+                    { header: '现场照片', key: 'photoCol', width: 30 }
                 ];
 
                 ws2.getRow(1).font = { bold: true, color: { argb: 'FFFFFF' } };
@@ -1190,17 +1303,27 @@
                             cRow.alignment = { vertical: 'top', wrapText: true };
 
                             if (item.photos && item.photos.length > 0) {
-                                cRow.height = 90;
-                                const photoBase64 = item.photos[0];
-                                const imageId = workbook.addImage({
-                                    base64: photoBase64,
-                                    extension: photoBase64.includes('image/png') ? 'png' : 'jpeg',
-                                });
+                                cRow.height = 95;
 
-                                ws2.addImage(imageId, {
-                                    tl: { col: 6, row: capaRowIndex - 1 },
-                                    ext: { width: 110, height: 80 }
-                                });
+                                for (let pIdx = 0; pIdx < item.photos.length; pIdx++) {
+                                    const photoBase64 = item.photos[pIdx];
+                                    const cleanB64 = getCleanBase64(photoBase64);
+                                    if (!cleanB64) continue;
+
+                                    try {
+                                        const imageId = workbook.addImage({
+                                            base64: cleanB64,
+                                            extension: getImageExt(photoBase64),
+                                        });
+
+                                        ws2.addImage(imageId, {
+                                            tl: { col: 6 + (pIdx * 0.8), row: capaRowIndex - 1 + 0.1 },
+                                            ext: { width: 100, height: 80 }
+                                        });
+                                    } catch(imgErr) {
+                                        console.warn("Failed to embed CAPA image into Excel:", imgErr);
+                                    }
+                                }
                             } else {
                                 cRow.height = 40;
                             }
@@ -1210,17 +1333,30 @@
                     });
                 });
 
-                // Write to Buffer & Trigger Save
+                // Write Buffer & Trigger Save
                 const buffer = await workbook.xlsx.writeBuffer();
                 const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
                 const fileName = `QAM_Audit_Report_${auditData.meta.factory}_${auditData.meta.date}.xlsx`;
                 saveAs(blob, fileName);
 
-                showToast("包含图片的 Excel 报告已成功导出！");
+                showToast("包含照片的 Excel 报告已成功导出！");
             } catch(e) {
                 console.error("Excel Export Failed", e);
                 alert("导出失败，请检查数据格式: " + e.message);
             }
+        }
+
+        function triggerPDFExport() {
+            document.getElementById('pdf-guide-modal').classList.remove('hidden');
+        }
+
+        function closePDFModal() {
+            document.getElementById('pdf-guide-modal').classList.add('hidden');
+        }
+
+        function executePDFPrint() {
+            closePDFModal();
+            window.print();
         }
 
         function openEditorModal() {
