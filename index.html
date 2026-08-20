@@ -145,7 +145,7 @@
                         <span id="overall-score-display" class="text-5xl font-extrabold tracking-tight text-white">100.0</span>
                         <span class="text-xl font-semibold text-slate-400">%</span>
                     </div>
-                    <p class="text-xs text-slate-400 mt-1" id="score-calculation-note">包含 15 个主要稽核模块 (共80+项小项)</p>
+                    <p class="text-xs text-slate-400 mt-1" id="score-calculation-note">包含 15 个主要稽核模块 (共106项小项)，按 Excel 分模块权重加权计分</p>
                 </div>
 
                 <!-- Mini Progress Breakdown -->
@@ -348,11 +348,27 @@
                 <div>
                     <label class="block text-xs font-bold text-slate-600 mb-1">选择模块 (Section)</label>
                     <select id="editor-section-select" class="w-full border border-slate-300 rounded-lg p-2 text-xs" onchange="loadEditorItems()"></select>
+                    <div class="flex space-x-2 mt-2">
+                        <button onclick="newEditorSection()" class="px-3 py-1.5 text-xs bg-emerald-600 hover:bg-emerald-500 font-semibold rounded-lg text-white flex items-center space-x-1">
+                            <i class="fa-solid fa-plus"></i><span>新增模块</span>
+                        </button>
+                        <button onclick="deleteEditorSection()" class="px-3 py-1.5 text-xs bg-rose-600 hover:bg-rose-500 font-semibold rounded-lg text-white flex items-center space-x-1">
+                            <i class="fa-solid fa-trash"></i><span>删除当前模块</span>
+                        </button>
+                    </div>
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-slate-600 mb-1">选择/新建稽核项</label>
+                    <label class="block text-xs font-bold text-slate-600 mb-1">选择稽核项 (Item)</label>
                     <select id="editor-item-select" class="w-full border border-slate-300 rounded-lg p-2 text-xs" onchange="populateEditorForm()"></select>
+                    <div class="flex space-x-2 mt-2">
+                        <button onclick="newEditorItem()" class="px-3 py-1.5 text-xs bg-emerald-600 hover:bg-emerald-500 font-semibold rounded-lg text-white flex items-center space-x-1">
+                            <i class="fa-solid fa-plus"></i><span>新建稽核项</span>
+                        </button>
+                        <button onclick="deleteEditorItem()" class="px-3 py-1.5 text-xs bg-rose-600 hover:bg-rose-500 font-semibold rounded-lg text-white flex items-center space-x-1">
+                            <i class="fa-solid fa-trash"></i><span>删除当前项</span>
+                        </button>
+                    </div>
                 </div>
 
                 <div class="space-y-3 pt-3 border-t border-slate-100">
@@ -405,6 +421,27 @@
         </div>
     </div>
 
+    <!-- Mobile Excel Notice Modal -->
+    <div id="mobile-excel-notice-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 no-print">
+        <div class="bg-white rounded-2xl shadow-xl max-w-md w-full p-6 space-y-4 text-left">
+            <div class="flex items-center space-x-3 text-emerald-600 border-b border-slate-100 pb-3">
+                <i class="fa-solid fa-mobile-screen-button text-2xl"></i>
+                <h3 class="font-bold text-slate-900 text-sm">📱 手机端查看 Excel 照片提示</h3>
+            </div>
+            
+            <p class="text-xs text-slate-600 leading-relaxed bg-amber-50/80 p-3 rounded-xl border border-amber-200/80">
+                <strong class="text-amber-800">⚠️ 关键说明：</strong><br>
+                苹果手机（iPhone）或微信自带的盲看文件预览 (Quick Look) 原生不支持渲染 Excel 内部图层照片。<br><br>
+                <strong>✅ 正确查看方法：</strong><br>
+                请将导出的 <code>.xlsx</code> 文件使用手机上的 <b>WPS Office App</b> 或 <b>微软 Excel App</b> 打开，照片即可 100% 自动嵌入并清晰展现！
+            </p>
+
+            <div class="flex justify-end pt-1">
+                <button onclick="closeMobileExcelModal()" class="px-5 py-2 text-xs bg-emerald-600 hover:bg-emerald-500 font-semibold rounded-lg text-white shadow">我知道了 (Got It)</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Toast Container -->
     <div id="toast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 transition-all duration-300 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-2xl flex items-center space-x-3 no-print">
         <i class="fa-solid fa-circle-check text-emerald-400 text-lg"></i>
@@ -416,7 +453,7 @@
         // Full QAM Audit Dataset - Complete 15 Major Sections
         const initialQAMSections = [
             {
-                id: "sec_1_1", code: "1.1", name: "來料倉庫(原材料 / 配件 / 大底 / 化學品)", nameEn: "Incoming warehouses (Materials/Accessories/Rubber/Chemical)",
+                id: "sec_1_1", code: "1.1", name: "來料倉庫(原材料 / 配件 / 大底 / 化學品)", nameEn: "Incoming warehouses (Materials/Accessories/Rubber/Chemical)", weight: 2,
                 items: [
                     { id: "qam_1_1_1", code: "1.1.1", topic: "FACILITY CONDITION", question: "Is the building well-maintained and organized?\n建築學是否得到了良好的維護和規劃？", expectation: "Yes:\n+ Well-maintained: 維護良好\n* Warehouses (Material/Accessories/Rubber/Chemical) and storage areas are clean (no mold signal, no roof/window leakage, no damaged floors and walls, windows are clean, no loose or exposed wiring).\n倉庫（材料/配件/橡膠/化學品）和儲存區域乾淨（沒有顯現黴菌，無黴跡象，沒有屋頂/窗戶漏水，沒有損壞的地板和牆壁，窗戶清潔，沒有鬆動或裸露的電線）\n* Regular 6S self-inspection & Mold prevention checking are conducted according to Mold Prevention Guideline (A0477).\n根據《防黴指南》定期進行6S自檢和防黴檢查\n* Temperature & humidity control is maintained and recorded at all times (24/7), if out of range Action Plan should be available to solve the issue.\n溫度和濕度控制始終保持登記記錄（24/7），建立數位化管理，如果超出範圍，制定行動計畫來解決問題（參考防黴指南），同時做好記錄並存檔\n+ Organized: 組織，規劃\n* Areas in the warehouse are clearly defined and identified as per the defined layout. 倉庫中的區域有明確的定義和標識\n* Guidelines for storage: 0.5m from walls, 1.5m from windows and 0.1m from floor. 儲存指南：距離牆壁0.5米，距離窗戶1.5米，距離地板0.1米\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
                     { id: "qam_1_1_2", code: "1.1.2", topic: "FACILITY CONDITION", question: "Does the building HAS adequate storage and restricted access?\n設施：建築是否有足夠的存儲空間和進出管理？", expectation: "Yes:\n+ Adequate storage: 充足的存儲空間，沒有任何物品直接接觸地面\n* No item is directly touching the ground.\n+ Restricted access: Security measures with records are implemented to prevent unauthorized access.\n進出管理：有記錄的安全管理措施，防止未經授權人的進出\n+ Safety: 安全性\n* Aisles and emergency exit routes are free and unobstructed. 通道和緊急出口路線暢通無阻\n* Items are piled up with a safe height. 物品堆放在安全的高度\nNO:\nAny non-compliance found during review. 檢視期間發現的任何不合規情況", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
@@ -428,7 +465,7 @@
                 ]
             },
             {
-                id: "sec_1_2", code: "1.2", name: "來料倉庫 - 檢驗", nameEn: "Incoming warehouses - Inspection",
+                id: "sec_1_2", code: "1.2", name: "來料倉庫 - 檢驗", nameEn: "Incoming warehouses - Inspection", weight: 2,
                 items: [
                     { id: "qam_1_2_1", code: "1.2.1", topic: "FACILITY CONDITION", question: "Is the inspection area well-maintained and organized with adequate lighting?\n設施：檢查區域是否得到了良好的維護和規劃，並有足夠的照明？", expectation: "Yes:\n+ Well-maintained: 進貨檢查區域乾淨（沒有出現黴菌，無黴跡象，沒有屋頂/窗戶漏水，沒有損壞的地板和牆壁，窗戶清潔，沒有鬆動或裸露的電線）\n+ Organized: Floor markings and signage are used to define areas for Passed / Failed / Awaiting inspection materials.\n組織規劃：地板標記和牌示用於定義 通過 / 待檢 / 等待檢查材料的區域\n+ Adequate lighting: Min 750 Lux. 充足的照明：最低 750 Lux\n+ Quality of Control Measures: CTQ品質管控措施", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
                     { id: "qam_1_2_2", code: "1.2.2", topic: "EXECUTION", question: "Are the incoming inspection activities properly carried out at the workstation?\n執行：是否有在工作台上做主要的進料檢驗事項？", expectation: "Yes:\n+ Inspection procedures: 流程檢查\n+ Moisture control: 含水率檢測\n+ Metal Management: 金屬管理", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
@@ -440,7 +477,7 @@
                 ]
             },
             {
-                id: "sec_2_1", code: "2.1", name: "部件 / 裁斷", nameEn: "Component Cutting",
+                id: "sec_2_1", code: "2.1", name: "部件 / 裁斷", nameEn: "Component Cutting", weight: 1,
                 items: [
                     { id: "qam_2_1_1", code: "2.1.1", topic: "FACILITY CONDITION", question: "Are the cutting areas well-maintained and organized with an adequate space?\n設備條件：裁斷區域是否有良好的維護和規劃並有足夠的空間？", expectation: "Yes:\n+ Clean, organized, 750-1000 Lux lighting.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
                     { id: "qam_2_1_2", code: "2.1.2", topic: "EXECUTION", question: "Are there cutting/relaxing/spreading procedures carried out at the workstation with clear records?\n執行：工作台上是否有明確的裁斷/放鬆/鋪黃程序及記錄？", expectation: "Yes:\n+ SOPs posted and records kept for 1 year.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
@@ -453,7 +490,7 @@
                 ]
             },
             {
-                id: "sec_2_2", code: "2.2", name: "部件 | 調膠房(包括化學品管控)", nameEn: "Component | Mixing room (including chemicals management)",
+                id: "sec_2_2", code: "2.2", name: "部件 | 調膠房(包括化學品管控)", nameEn: "Component | Mixing room (including chemicals management)", weight: 1,
                 items: [
                     { id: "qam_2_2_1", code: "2.2.1", topic: "FACILITY CONDITION", question: "Is the working area well-maintained and organized with adequate storage and ventilation?\n設備條件：工作區域是否有良好的維護和組織，是否有足夠的儲存空間和受控管理？", expectation: "Yes:\n+ Clean, ventilation system functional, fire extinguisher active.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
                     { id: "qam_2_2_2", code: "2.2.2", topic: "FACILITY CONDITION", question: "Are storage conditions for Chemicals implemented per supplier recommendations?\n設備條件：化學品的儲存條件是否按照供應商的建議執行？", expectation: "Yes:\n+ Temperature 5-35°C logged twice daily.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
@@ -467,7 +504,7 @@
                 ]
             },
             {
-                id: "sec_2_3", code: "2.3", name: "部件 | 射出 / 注塑", nameEn: "Component | Injection/Moulding",
+                id: "sec_2_3", code: "2.3", name: "部件 | 射出 / 注塑", nameEn: "Component | Injection/Moulding", weight: 1,
                 items: [
                     { id: "qam_2_3_1", code: "2.3.1", topic: "FACILITY CONDITION", question: "Is facility well-maintained and organized with adequate storage?\n設施條件：設施是否得到了良好的維護和規劃，是否有足夠的存儲空間？", expectation: "Yes:\n+ Clean, 6S monthly check, 0.5m/1.5m/0.1m rule.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
                     { id: "qam_2_3_2", code: "2.3.2", topic: "EXECUTION", question: "Are Injection/Moulding procedures carried out with clear records?\n執行：標準工作程式是否在工作台上執行，是否有明確的記錄？", expectation: "Yes:\n+ Operation SOP posted; parameters checked.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
@@ -481,7 +518,7 @@
                 ]
             },
             {
-                id: "sec_2_4", code: "2.4", name: "印刷 / 處理 / 加工 (昇華轉印 / 熱轉印 / 貼合 / 壓花等)", nameEn: "Printing/Sublimation/Heat Transfer/Bonding/Etc",
+                id: "sec_2_4", code: "2.4", name: "印刷 / 處理 / 加工 (昇華轉印 / 熱轉印 / 貼合 / 壓花等)", nameEn: "Printing/Sublimation/Heat Transfer/Bonding/Etc", weight: 2,
                 items: [
                     { id: "qam_2_4_1", code: "2.4.1", topic: "FACILITY CONDITION", question: "Are process areas well-maintained and organized with adequate space?\n設備條件：區域是否得到了良好的維護和規劃，是否有足夠的空間？", expectation: "Yes:\n+ Clean, 750-1000 Lux lighting, shadow boards used.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
                     { id: "qam_2_4_2", code: "2.4.2", topic: "EXECUTION", question: "Are procedures/guidelines for specific processes carried out with clear records?\n執行：特定的流程/指南是否有清晰的記錄？", expectation: "Yes:\n+ Process SOPs available and followed.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
@@ -495,7 +532,7 @@
                 ]
             },
             {
-                id: "sec_2_5", code: "2.5", name: "部件 | 配套中心 / 在製品倉庫 (WIP)", nameEn: "Component | Distribution center/Super-market (WIP)",
+                id: "sec_2_5", code: "2.5", name: "部件 | 配套中心 / 在製品倉庫 (WIP)", nameEn: "Component | Distribution center/Super-market (WIP)", weight: 2,
                 items: [
                     { id: "qam_2_5_1", code: "2.5.1", topic: "FACILITY CONDITION", question: "Are Distribution center/Supermarket areas well-maintained and organized?\n設施：區域是否得到了良好的維護和組織規劃？", expectation: "Yes:\n+ Clean, dry, 6S monthly check.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
                     { id: "qam_2_5_2", code: "2.5.2", topic: "FACILITY CONDITION", question: "Does Distribution center/Supermarket areas have adequate and safe storage?\n設施：配套中心/在製品會是否有足夠空間及安全儲存？", expectation: "Yes:\n+ Racks used, no items directly on floor.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
@@ -506,27 +543,27 @@
                 ]
             },
             {
-                id: "sec_3_1", code: "3.1", name: "針車 & 成型", nameEn: "Stitching & Assembly",
+                id: "sec_3_1", code: "3.1", name: "針車 & 成型", nameEn: "Stitching & Assembly", weight: 2,
                 items: [
-                    { id: "qam_3_1_1", code: "3.1.1", topic: "FACILITY CONDITION", question: "Are working areas well-maintained and organized?\n設施條件：工作區域是否有良好的維護和組織規劃？", expectation: "Yes:\n+ Clean, bright, 24/7 temp/humidity logged.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
-                    { id: "qam_3_1_2", code: "3.1.2", topic: "EXECUTION", question: "Are SOPs properly carried out at workstation?\n執行：標準操作SOP在工作台上是否正確執行？", expectation: "Yes:\n+ SOPs posted; broken needle policy (1-to-1) strictly followed.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
-                    { id: "qam_3_1_3", code: "3.1.3", topic: "EXECUTION", question: "Are chemical/adhesive application properly managed?\n執行：車間化學品/膠水的使用管理是否符合規範？", expectation: "Yes:\n+ Pot life labeled; secondary containment used.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
-                    { id: "qam_3_1_4", code: "3.1.4", topic: "EXECUTION", question: "Is broken needle and metal policy strictly enforced?\n執行：針車線是否嚴格執行斷針控管？", expectation: "Yes:\n+ Locked broken needle box; 100% fragments verified.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
-                    { id: "qam_3_1_5", code: "3.1.5", topic: "MACHINES/TOOLS", question: "Are equipment well-equipped with specified parameters?\n機器/工具：針車與成型設備是否配備了指定的參數？", expectation: "Yes:\n+ Ovens (>75°C) & chillers (< -5°C) parameter cards posted.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
-                    { id: "qam_3_1_6", code: "3.1.6", topic: "MACHINES/TOOLS", question: "Are machines and gauges maintained with calibration status?\n機器/工具：設備和壓力表/溫度計是否有校準狀態？", expectation: "Yes:\n+ Gauges calibrated with labels.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
-                    { id: "qam_3_1_7", code: "3.1.7", topic: "INSPECTION", question: "Are inline QCs checking SPI, margin, tension hourly?\n檢驗：巡檢QC是否依標準檢測針距(SPI)、拉力并逐時記錄？", expectation: "Yes:\n+ Hourly check sheet complete.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
-                    { id: "qam_3_1_8", code: "3.1.8", topic: "INSPECTION", question: "Are bonding strength / peeling tests conducted?\n檢驗：成型貼底是否按頻率做拉力/剝離強度測試？", expectation: "Yes:\n+ Bonding strength meets spec (>3.0 kg/cm).", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
-                    { id: "qam_3_1_9", code: "3.1.9", topic: "INSPECTION", question: "Are mold prevention controls (A0477) executed?\n檢驗：成型防黴處理是否嚴格執行防黴A0477標準？", expectation: "Yes:\n+ Approved anti-mold chemical & UV lamps used.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
-                    { id: "qam_3_1_10", code: "3.1.10", topic: "INSPECTION", question: "Is moisture content tested (<12-14%) before shoe boxing?\n檢驗：成品包裝前是否測定含水率（符合<12-14%標準）？", expectation: "Yes:\n+ Calibrated meter; hourly log complete.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
-                    { id: "qam_3_1_11", code: "3.1.11", topic: "INSPECTION", question: "Are non-conforming shoes tagged and re-inspected after rework?\n檢驗：不良鞋是否掛牌隔離，返工後重新驗收入庫？", expectation: "Yes:\n+ Rework area defined with log.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
-                    { id: "qam_3_1_12", code: "3.1.12", topic: "INSPECTION", question: "Are inspection reports retained for traceability?\n檢驗：檢驗報告是否存檔以供追溯？", expectation: "Yes:\n+ Retained for at least 1 year.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
-                    { id: "qam_3_1_13", code: "3.1.13", topic: "ACTION PLAN", question: "In case of quality defects, are CAPAs properly executed?\n改善行動：當瑕疵超過限度時，主管是否做好改善行動？", expectation: "Yes:\n+ Immediate & preventive actions documented.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
-                    { id: "qam_3_1_14", code: "3.1.14", topic: "ACTION PLAN", question: "Are CTQ risk analyses cascaded to teams?\n改善行動：CTQ風險分析是否下發至相關團隊？", expectation: "Yes:\n+ Team understands CTQ risks.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
-                    { id: "qam_3_1_15", code: "3.1.15", topic: "TRACEABILITY", question: "Is traceability maintained from components to finished products?\n追溯性：從部件到成品鞋是否保持完整追溯？", expectation: "Yes:\n+ PO, lot #, date code traceable.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] }
+                    { id: "qam_3_1_1", code: "3.1.1", topic: "FACILITY CONDITION", question: "Are Stitching & Assembly areas well-maintained and organized?\n針車 / 成型區域是否得到了良好的維護和組織規劃？", expectation: "YES: \n+ Well-maintained: 維護良好\n   * All areas are clean (no mold signal, no roof / window leakage, no damaged floors and walls, windows are clean, no loose or exposed wiring).\n       所有區域都是乾淨的（沒有出現黴菌，發黴跡象，沒有屋頂 / 窗戶漏水，沒有損壞的地板和牆壁，窗戶是乾淨的，沒有鬆動或暴露的電線）\n   * Regular 6S self-inspection & Mold prevention checking are conducted in according to Mold Prevention Guideline, A0477.  根據《防黴指南》定期進行 6S 自檢和防黴檢視\n   * Temperature & humidity control are in place with clear follow-up. Deviation from standard limits mentioned in Mold Prevention Guidelines are managed with records.\n      溫度和濕度管控到位，並有明確的跟蹤。對防黴指南中提到的標準值限的偏差進行記錄管理。當數值超出標準值限時需立即採取相關的行動及改善措施\n+ Organized: 組織規劃\n   * WIPs are arranged in order without pile up.  所有部件或物品擺放排列有序，沒有堆積，雜亂\n+ Quality of Control Measures:  CTQ 品質管控措施\n   * Is the CTQ control measure created, that is comprehensive with specific measures, clear actions and detailed steps define, ensuring: (Scalable and Consistent method/control/impact of operation or product).  CTQ 控制措施是否已建立？ 該措施是否全面、包含具體方法、明確的操作和詳細的步驟定義，以確保：具有可擴展性和一致性的方法 / 控制措施 / 對生產或産品的影響；\n+ Safety: 安全性\n   * Emergency exit routes are free and unobstructed.出口通道暢通\nNO: \nAny non-compliance found during review.  檢視期間發現的任何不合規情況", weight: 2, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_3_1_2", code: "3.1.2", topic: "EXECUTION", question: "Are there SOP (working instructions) for Stitching/Assembly process properly carried out?\n執行: 針車 / 成型流程是否有正確的執行 SOP（作業指導書）？", expectation: "YES:\n+ The stitching / assembly SOP / working instructions:  針車 / 成型的 SOP（ 作業指導書）\n   * The documents & mock-up (or samples) are available at critical working stations.  相關核可的資料檔可在工作站獲得並用於使用\n   * The content includes at least: Process name, Stitching / Assembly method, Standards.  內容至少包括：工藝流程名稱、針車 / 成型正確操作方法、標準\n+ Whether chemical products used in mass production are properly executed according to the SOP / BPFC , Especially to avoid being over expiration dates used for the chemical, such as whether cement or primer mixed with hardeners are used within the specified time.  現場使用的化學品是否按照 SOP / BPFC 正確執行，特別是避免化學品使用超過有效期，比如加了硬化劑調好的膠水或者處理劑是否在有效的時間內用完\n+ All lasts, molds, fixtures, and tooling numbers and size are used correctly in accordance with SOP, and should be well maintained and have a separate area for storage with clear labeling information such as style, size, number ( Ex: chilling/heating mold,  pressing molds and gauge marking mold etc.)   所有的鞋楦頭，以及模，制具的使用按照 SOP 正確執行，以及平時的維護與保養，固定位置存放並有清晰的標識注明型體，規格，號碼，編號等相關資訊。（如：定型模，壓低模，畫線模等）\n+ Trial production of the new model in small batches should be arranged before mass production.   新的型體在大量生產之前是否有安排小批量的試做\n+ Validation of control measures in pre-production (production trial) before production lines start:   預生産階段（試生産）控制措施的驗證： \n    * Is there Handover from development to production before production lines start?  生産線啓動前，是否有從開發部門到生産部門的交接流程？\n+ Accessibility to CTQ Control Measures: CTQ 控制措施的可訪問性\n    * Do T1 team (all departments impacted ) and T1 quality have easy access to CTQ documents, allowing information to be provided without difficulty on the production line?   生產團隊是否能夠輕鬆獲取 CTQ 文件，從而能夠便於在生産線上提供所需信息？\n    * Do T1 have any digital internal system ( or platform or share folder ) to enable efficiency access to all CTQ relates (e.g. :soft file of CTQ model, risk level ,control measure ) ?  生產團隊是否有任何數字化的內部系統 (或平臺、共享文件夾), 以實現對所有 CTQ 相關信息 (例如:  CTQ 的電子文件、風險等級、控制措施) 的高效訪問？\n+ Control measure execution at departmen:  部門內控制措施的執行\n    * Is there training conducted to ensure that technicians/ operators/ supervisors etc are all adequately informed and able to execute on the agreed/required control measures?  是否開展了培訓，以確保技術人員 / 操作員 / 主管等所有相關人員均已充分瞭解並能夠執行既定的 / 要求的控制措施？\n+ Safety: 安全性\n   * Workers must wear PPE as per safety requirements (ear plugs, caps, etc.).工人必須按照安全要求穿戴個人防護裝備（耳塞、帽子等）\n   * Protection aids (ex: protection glasses) in sewing machines are in use during operation.針車機台在操作過程中使用保護裝置 (例如: 防護眼鏡)\nNO: \nAny non-compliance found during review.  檢視期間發現的任何不合規情況", weight: 2, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_3_1_3", code: "3.1.3", topic: "EXECUTION", question: "Is there needle management procedure within the working area?\n執行: 工作區域內是否有車針管理完善的流程？", expectation: "YES: \n+ A process in place to guide the needle management in the area with clear roles and responsibilities of related people. The content is aligned with adidas needle management policies (A0198/A0282/A0296).  車針管理作業指導書，包含相關人員的工作職責。內容符合 adidas 車針管理政策（A0198/A0822/A0296）\n+ Full set of the needles is recorded & kept by lines, by needle types, fully documented and kept in a locked place.\n   車針有完整的管理配套（包括斷針的針頭或其他部分拼成一根完整的車針）需按線路、針型方式擺放整齊，並記錄保存在安全上鎖的地方\n+ Procedure in case of broken needles are well deployed, including how to search broken parts, how to make sure the products free of missed broken parts, and how to release a new needle & escalation (if needed).  斷針的處理流程，包括如何查找斷針，如何確保產品沒有遺漏的斷針，以及如何發放新針和升級往上彙報 (如果需要)\n+ Records are accurately completed. 記錄準確及時填寫並存檔\nNO:\nAny non-compliance found during review.  檢視期間發現的任何不合規情況", weight: 2, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_3_1_4", code: "3.1.4", topic: "EXECUTION", question: "Are all sharp tools/metal tools/scissors kept in a controlled manner?\n執行: 所有鋒利的工具 / 金屬工具 / 剪刀是否管控好？", expectation: "YES:\n+ Controlled manner: Sharp tools / Metal tools /  Scissors are kept in shadow boards/locked or other controlled methods that can avoid unintended physical damage to products. 管控方式：鋒利的工具 / 金屬工具 / 剪刀放在工具箱中並上鎖或其他管控方式，以避免對產品造成意外損壞\nNO:\nAny non compliance found during review.檢視期間發現的任何不合規情況", weight: 2, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_3_1_5", code: "3.1.5", topic: "MACHINES/TOOLS", question: "Is the stitching/ assembly area well-equipped with all machines/tools (sewing, steaming, heating, UVC, chillers, ball shaping,etc.) which are configured with specified parameters?\n機器 / 工具: \n是否配備有指定參數的所有機器/工具(針車、蒸濕機、烘箱、UVC、冷凍箱，定型機等)？", expectation: "YES:\n+ Well-equipped:   設備齊全\n   * All machines used in the stitching / assembly must have their unique IDs.  針車 / 成型中使用的所有機器都必須具有唯一的 ID\n   * All machines are maintained at a defined frequency with clear tracking records.  所有機器都按照規定的頻率進行維護，並有清晰的跟蹤記錄\n   * Malfunctioning machines are identified and isolated.  識別並隔離故障機器\n+ Machine settings:  機器設置\n   * Machine settings follows the respective SOPs / guidelines of each product type.  機器設置遵循每種產品類型的相應 SOP / 指南\n   * Parameters guidelines are displayed at the workstation.  參數指南顯示在工作站上\n+ Parameter control:  參數控制\n   * Parameters are calibrated and monitored at a defined frequency with clear records.  按規定的頻率校準和監測參數，並有清晰的記錄\n   * In case of wrong parameters or machines issues action plans / escalation process are clearly addressed to responsible people.  如果出現錯誤的參數或機器問題，應向負責人明確說明行動計畫 / 升級向上彙報過程\n+ The production area must be equipped with the appropriate checking  instruments and related tools, all within their valid calibration period.  生產區必須配備相應的檢測儀器和相關工具，且均在其有效的校準期內\n+ Critical to Process:  關鍵流程\n   * SOPs and equipment at CTQ workstations design to ensure repeatability / reproducibility to safeguard consistent method/process?  ( Eg, computer stitching i/o manual, where it deskill the operator/automates the process ).  位於 CTQ 工作站的標準作業程序和設備設計，是否旨在確保操作的可重複性 / 再現性，從而保障方法 / 工藝的一致性？（例如，採用電腦縫紉替代手工縫紉，以降低對操作人員的技能依賴 / 實現流程自動化）\nNO:\nAny non-compliance found during review.  檢視期間發現的任何不合規情況", weight: 2, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_3_1_6", code: "3.1.6", topic: "MACHINES/TOOLS", question: "A process to act in case of machine breakdown is well-deployed in the factory by all responsible people?\n機器 / 工具: 工廠內所有負責人是否制定了應對機器故障的程式？", expectation: "YES: \n+ There's a process in place showing action plan in case of machine breakdown, including at least:  Machine issues verification, Defined duration to handle machine breakdown in the line, roles & responsibilities from related people (workers, line leaders, mechanical team, QCs), Mock-up verification by QC before machine resume working, etc.) \n    建立一個機器故障維修的管理制度，顯示機器出現故障時的行動計畫，至少包括: 機器問題驗證，確定生產線上處理或維修故障機器的持續時間，相關人員 ( 操作工人，生產線 管理人員，機器維修團隊，QC ) 的角色和職責，機器恢復工作前 QC 的實踐操作驗證等.\n+ The process is understood by related people and they can demonstrate by practice.  相關人員理解該過程，並能通過實踐進行論證\n+ All molds and tools are complete and free of damage.  所有模具和工具完整，無損壞\nNO:\n Any non-compliance found during review.  檢視期間發現的任何不合規情況", weight: 2, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_3_1_7", code: "3.1.7", topic: "INSPECTION", question: "Are inline inspection (by RQCs) activities properly carried out with calibrated devices according to the specified procedures?\n檢驗: 線上檢驗活動，RQC 是否按照規定的流程正確地使用校準過的設備進行檢驗？", expectation: "YES: \n+ Inline inspection procedures:  生產現場巡線檢查流程\n   * An approved document shows instructions for FG inspection, including at least:  inspection criteria & standards, Inspection frequency, Sampling, Reporting, Handling non-conformities.  經確認或批准的檔資料顯示成品檢驗說明，內容至少包括: 檢驗準則和標準，檢驗頻率，抽樣，報告，不合格品的處理\n   * Inline QCs understand the procedure content & can demonstrate by practice.  巡線 QC 瞭解程式內容，並能通過實踐來進行操作\n+ Clear records:  清晰記錄\n   * Inspection results are documented timely, including any deviations or non-conformities.  及時記錄檢驗結果，包括任何差異或不符合項\n   * Records are retained for at least 1 year.  記錄至少保留 1 年\n+ All machinery and equipment, including heat setting machine, heating tunnel, chilling machine, and heating /  chilling molds for Back Part Molding, should be checked by QCs every 2 hours for the technical parameters set according to the actual production SOP, with proper documentation (e.g., temperature, time, pressure, speed, etc.)\n    所有機器設備, 包括烤箱、加硫箱、冷凍箱和後踵定型機, QC 每 2 小時檢查一次, 根據實際生產 SOP 設置的參數並記錄存檔(如溫度、時間、壓力、速度等)\n+ Visual management at production line & work station: CTQ 檢驗工作站的目視化管理\n   * Is there clear signage on all production lines producing SCPR products, displaying the risk level as low, medium, or high? \n       所有用於生産 SCPR 産品的原材料，是否都設有清晰的標識牌，展示風險等級（低、中、高）？\n   * Is the CTQ process at the workstation visually flagged with clear identification of the 7 CTQ risks and their risk levels and clear enough to be identify by either factory or adidas?      工作站的 CTQ 流程是否有可視化標識，能清晰識別 7 類 CTQ 風險及其風險等級，並且該標識是否足夠清晰，能讓工廠和品牌雙方人員都能清楚識別？\n   * For flagged CTQ processes, are the control measures translated into detailed SOPs for each process, clearly written in both the local language and English to ensure ease of follow-up for both the factory and adidas?  對於已標識的 CTQ 流程，相關的控制措施是否已轉化爲每個工序的詳細 SOP？ 這些 SOP 是否清晰地使用當地語言和英語書寫，以確保“工廠”和“品牌”雙方都能輕鬆跟進？\nNO:\nAny non-compliance found during review.  檢視期間發現的任何不合規情況", weight: 2, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_3_1_8", code: "3.1.8", topic: "INSPECTION", question: "Is Moisture Content Measurement activities properly carried out on finished goods at the end of the line with calibrated devices according to the adidas Mold Prevention Guidelines A0477?\n檢驗: 含水量測試是否根據adidas防黴指南 A0477 使用校準好的設備正確進行？", expectation: "YES:\n+ Calibrated Devices: Aqua-boy Moisture Meter (or any other device from a different supplier providing the same reading with comparable accuracy) has updated calibration.\n   校準設備：含水量測試儀 (或來自不同供應商的任何其他設備，提供相同的讀數，具有相當的精度) 已有最新的校準\n+ Frequency & Checking points: As per Mold Prevention Guidelines A0477.   頻率和檢查點：根據防黴指南 A0477\n+ Records are retained for at least 1 year.  記錄至少保存1年\nNO:\nAny non-compliance found during review.  檢視期間發現的任何不合規情況", weight: 2, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_3_1_9", code: "3.1.9", topic: "INSPECTION", question: "Are endline inspection areas clean with sufficient space, light, and equipped with devices/ tools, samples, defect rate visualizations, etc., in accordance with specified  running product types?\n檢驗: 流水線後段檢驗區域是否清潔，有足夠的空間，光線，並配有設備 / 工具，樣品，不良率可視化等，符合規定的運行產品類型?", expectation: "YES: \n+ Endline inspection areas:  流水線後段檢驗設施\n   * Inspection table size is suitable for inspection activities.  檢驗臺尺寸適合檢驗活動\n   * Lighting standard: Min 750-1000 Lux.  照明標準：最小 750-1000 Lux\n   * Inspection table is colored white or grey, with a smooth surface.  檢驗臺為白色或灰色，表面光滑\n+ Devices / tools used for inspection have an updated & valid calibration.  用於檢驗的設備 / 有效的更新校準工具\n+ Approved Production Sample is available in each production line, with correct and valid information (product name, QA / QC approval,...)\n    每條生產線都有批准的生產樣品，並提供正確有效的資訊（產品名稱、QA / QC 批准等）\n+ Communication boards / notice boards / digital systems display quality data / defects, the quality status is is displayed at the production and timely updated.\n    通訊板 / 佈告板 / 數字系統顯示品質數據不良，品質狀態在生產時顯示並及時更新\nNO : \nAny non-compliance found during review.  檢視期間發現的任何不合規情況", weight: 2, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_3_1_10", code: "3.1.10", topic: "INSPECTION", question: "Are endline inspection activities properly carried out according to the specified procedures?\n檢驗: 流水線後段檢驗是否按照規定的程式正確進行？", expectation: "YES: \n+ Endline inspection procedures:  流水線後段檢驗流程\n   * An approved document shows instructions FG inspection, including at least:  full FG inspection criteria & standards, Inspection steps, Reporting, Handling non-conformities.\n      經過確認批准的資料檔顯示成品的檢驗說明，內容項目至少包括：完整的成品檢驗準則和標準、檢查步驟、報告、不合格品處理\n   * Escalation process / Stop line procedures in case of defect rates exceed the acceptance limit.  在不良率超過可接受限度的情況下，升級上報流程 / 停線的處理流程\n   * Content of the documents aligned with adidas requirements (if any).  符合 adidas 要求的檔內容（如有）\n   * QCs understand the procedure content & can demonstrate by practice.  QC 瞭解程式內容，並能通過實踐操作\n+ Quality control for replenishment and shortage quantity of each PO.  每張訂單的尾數產品以及開補數產品的品質管控\nNO:\nAny non-compliance found during review.  檢視期間發現的任何不合規情況", weight: 2, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_3_1_11", code: "3.1.11", topic: "INSPECTION", question: "Are records of endline inspection activities available and retained for traceability?\n檢驗: 是否有流水線後段檢驗的記錄並保留以供查閱?", expectation: "YES: \n+ Clear records:  清晰記錄\n   * Inspection results are documented in-time, including any deviations or non-conformities.  及時記錄檢驗結果，包括任何差異或不符合的產品\n   * Non-conforming quantity in the reports are matched with physical count at QC stations.  報告中的不良品數量與 QC 工作站的不良品實物數量相匹配\n   * Records are retained for at least 2 years.  記錄至少保留 2 年\n+ The finished shoes produced by each production line need to do relevant project testing every day.   每條生產線每天所生產的成品鞋都需要做相關的測試\n+ CTQ Control Measures - execution monitoring: CTQ 控制措施 - 執行監督\n   * Are the 7 CTQ risks identified being monitored and tracked in production?  已識別的 7 項 CTQ 風險是否在生産中得到監督和追踪？\n   * Are the QC findings entered into the T1 quality system and monitored?  QC 的檢驗結果是否錄入 T1 品質系統並進行監督？\nNO:\nAny non-compliance found during review.  檢視期間發現的任何不合規情況", weight: 2, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_3_1_12", code: "3.1.12", topic: "INSPECTION", question: "Are non-conforming products systematically managed to prevent its use or release?\n檢驗: 是否對不合格產品進行系統管理，以防止其被使用或放行？", expectation: "YES:\n+ Systematical management: 系統化管理\n   * There's a process that clearly outlines the steps for identification, documentation, and segregation of non-conforming products. 有一個流程清楚地說明不合格產品的識別、記錄和隔離步驟\n   * At QC station, there is a designated space for isolating non-conforming products.  在 QC 工作站，有一個指定的空間用於隔離不合格產品\n   * Records of non-conforming products, include details such as the defect types / defect categories with its quantity. 不合格品的記錄，包括不良類型 / 不良類別及其數量等詳細資訊\nNO:\nAny non-compliance found during review.  檢視期間發現的任何不合規情況", weight: 2, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_3_1_13", code: "3.1.13", topic: "ACTION PLAN", question: "In case of quality issues in the line, are escalation procedures and action plans managed effectively by line leaders?\n改善行動: 生產線出現品質問題，管理人員是否有效的實施上報程式和行動計畫?", expectation: "YES:\n+ Escalation procedures exist to ensure that critical issues are addressed at the appropriate organizational level. 有上報程式：以確保嚴重問題在適當的組織級別得到解決\n+ Action plans (immediate actions, corrective actions, preventive actions) are timely implemented and followed up by the line leaders.\n    行動計畫：立即行動、糾正行動、預防行動的及時實施，並由生產線管理人員跟進\n+ Effectively: Reduction of endline defect rate is proved.  效果：確認是否已經降低生產線後段的不良率並符合設定標準\n+ Production/Supervisor awareness of CTQ risk analysis and control measure: 生産 / 主管人員對 CTQ 風險分析及控制措施的認知情况\n   * CTQ documents information with all relevant details cascade to relevant T1 teams?  包含所有相關詳情的 CTQ 文件信息是否已下達到所有相關的 T1 團隊？\n   * Production supervisor aware & understand the CTQ risks and control measures for the specific model in production? \n     生産主管是否瞭解並理解正在生産的特定型號的 CTQ 風險及其控制措施？\n+ Defect Rate Tracking  & Control measure adjustment:  CTQ 不良率追踪與控制措施調整\n   * Is the defect trend reviewed by the supervisor/quality team in a timely manner to ensure prompt action?\n     主管 / 品管團隊是否及時審查不良趨勢，以確保採取迅速行動？\n   * Are further adjustments in control measures being made when the defined control measure is proven inefficient?  當既定的控制措施被證明效果不佳時，是否對控制措施進行了進一步調整？\nNO:\nAny non-compliance found during review.  檢視期間發現的任何不合規情況", weight: 2, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_3_1_14", code: "3.1.14", topic: "ACTION PLAN", question: "Are rework activities carried out properly as per defined procedure with clear tracking records?\n改善行動: 返修是否按照規定的程式進行，並有明確的跟蹤記錄？\n(包括流水線上返修以及訂單翻箱時的返修)", expectation: "YES: \n+ The factory has clear procedures for handling and recording reworked products with clear roles and responsibilities from related departments (QCs, production team).\n   工廠有明確的返修產品處理和記錄程式，相關部門 (品質部門、生產部門) 的角色和職責明確\n+ Procedure content has at least: Identification, Isolation, Rework process, Reporting,etc. 程式內容至少有: 不良品鑒定、隔離、返修過程、報告等\n+ Clear tracking reports for rework must be available, including at least: Product information, Reasons for rework, rework input & output quantity, disposal quantity (if any).必須有清晰的返修跟蹤報告，至少包括: 產品資訊、返修原因、返修進出的數量、報廢數量 (如有)\n+ Rework output products must be 100% re-inspected by endline QCs with proven tracking records. 返修好的產品必須由生產線後段的 QC 100% 重驗，並有可靠的跟蹤記錄\n+ Management process for defective products that are ultimately determined to be non-conforming or B-grade items after repair.經過返修後最終確定為不合格或 B 品的處理流程及紀錄\nNO: \nAny non-compliance found during review.  檢視期間發現的任何不合規情況", weight: 2, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
+                    { id: "qam_3_1_15", code: "3.1.15", topic: "TRACEABILITY", question: "Is the traceability between adidas FG POs and materials batch/lot numbers or vice versa managed well by the factory?\n可追朔性: 訂單及對原物料的批次 / 批號的可跟蹤查閱的系統管理是否良好?", expectation: "YES: \n+ The traceability between adidas FG POs and material batch / lot numbers can be approved by clear records and evidence upon Inspectors's random requests.\n   針對完成好的成品鞋訂單以及原物料的每批次 / 批號，檢視人員可隨機要求並通過清晰的記錄和文檔進行查閱和檢驗\nNO: \nAny non-compliance found during review.  檢視期間發現的任何不合規情況", weight: 2, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] }
                 ]
             },
             {
-                id: "sec_3_2", code: "3.2", name: "組底 (底加工)", nameEn: "Stitching & Assembly | Stock-fitting",
+                id: "sec_3_2", code: "3.2", name: "組底 (底加工)", nameEn: "Stitching & Assembly | Stock-fitting", weight: 1,
                 items: [
                     { id: "qam_3_2_1", code: "3.2.1", topic: "FACILITY CONDITION", question: "Are Stock-fitting areas well-maintained and organized?\n設施：組底區域是否有良好的維護和組織規劃？", expectation: "Yes:\n+ Clean, 24/7 temp/humidity logged, 750-1000 Lux lighting.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
                     { id: "qam_3_2_2", code: "3.2.2", topic: "EXECUTION", question: "Are Stock-fitting SOPs properly carried out at workstation?\n執行：組底作業指導書 SOP 是否在工作台上正確執行？", expectation: "Yes:\n+ SOPs posted; UV treatment parameters followed.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
@@ -539,14 +576,14 @@
                 ]
             },
             {
-                id: "sec_4_1", code: "4.1", name: "包裝 | 金屬檢測", nameEn: "Packaging | Metal detection",
+                id: "sec_4_1", code: "4.1", name: "包裝 | 金屬檢測", nameEn: "Packaging | Metal detection", weight: 3,
                 items: [
                     { id: "qam_4_1_1", code: "4.1.1", topic: "EXECUTION", question: "Are there operating procedures of metal detection carried out with clear records?\n執行: 是否有金屬檢測的操作程式，並有明確記錄确保100%无金属？", expectation: "Yes:\n+ Standard SOPs with 9-point calibration.\n+ Machine settings and reaction plans for metal issues.\n+ Operating records retained for 1 year; metal cases for 2 years.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
                     { id: "qam_4_1_2", code: "4.1.2", topic: "MACHINES/TOOLS", question: "Is the working area well-equipped with all machines/tools configured?\n機器 / 工具: 工作區域是否配備所有規定參數的金屬檢測設備？", expectation: "Yes:\n+ Metal detectors have unique IDs and PM records.\n+ Daily 9-point calibration with test cards.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] }
                 ]
             },
             {
-                id: "sec_4_2", code: "4.2", name: "包裝管理", nameEn: "Packaging | Packaging activity",
+                id: "sec_4_2", code: "4.2", name: "包裝管理", nameEn: "Packaging | Packaging activity", weight: 1,
                 items: [
                     { id: "qam_4_2_1", code: "4.2.1", topic: "FACILITY CONDITION", question: "Is the building well-maintained and organized?\n設施: 設施及環境的維護和組織規劃是否良好？", expectation: "Yes:\n+ Clean, dry, 6S monthly check, 0.5m/1.5m/0.1m rule.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
                     { id: "qam_4_2_2", code: "4.2.2", topic: "EXECUTION", question: "Are the SOPs to manage packaging activities available and applied by workers?\n執行: 是否有標準操作程式(SOP)來指導正確包裝？", expectation: "Yes:\n+ Operators trained; inner/outer box labels verified.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
@@ -554,7 +591,7 @@
                 ]
             },
             {
-                id: "sec_5", code: "5", name: "成品倉", nameEn: "FG Warehouse",
+                id: "sec_5", code: "5", name: "成品倉", nameEn: "FG Warehouse", weight: 3,
                 items: [
                     { id: "qam_5_1", code: "5.1", topic: "FACILITY CONDITION", question: "Is the building well-maintained and organized?\n設施: 建築物是否有良好的維護和組織規劃？", expectation: "Yes:\n+ Clean, 24/7 temp & humidity logged, 0.5m/1.5m/0.1m rule.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
                     { id: "qam_5_2", code: "5.2", topic: "FACILITY CONDITION", question: "Does the building have adequate storage and restricted access?\n設施: 建築物是否有足夠的儲存空間和出入管理？", expectation: "Yes:\n+ Pallets used, access recorded, unobstructed exits.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
@@ -564,7 +601,7 @@
                 ]
             },
             {
-                id: "sec_6", code: "6", name: "AQL 驗貨室", nameEn: "AQL Inspection",
+                id: "sec_6", code: "6", name: "AQL 驗貨室", nameEn: "AQL Inspection", weight: 3,
                 items: [
                     { id: "qam_6_1", code: "6.1", topic: "FACILITY CONDITION", question: "Is AQL inspection room well-maintained?\n設施: AQL驗貨室是否得到良好的維護？", expectation: "Yes:\n+ Clean, A0477 temp/humidity standard, metal-free policy.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
                     { id: "qam_6_2", code: "6.2", topic: "FACILITY CONDITION", question: "Is AQL inspection room organized with adequate storage and restricted access?\n設施: AQL驗貨室是否有足夠的空間存放樣品和限制非授權人員進入？", expectation: "Yes:\n+ Layout defined; sampling table and standards displayed.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
@@ -577,7 +614,7 @@
                 ]
             },
             {
-                id: "sec_7", code: "7", name: "樣品室", nameEn: "Sample room",
+                id: "sec_7", code: "7", name: "樣品室", nameEn: "Sample room", weight: 1,
                 items: [
                     { id: "qam_7_1", code: "7.1", topic: "FACILITY CONDITION", question: "Is Sample room well-maintained and organized?\n設施: 樣品室是否維護良好及擺放有序？", expectation: "Yes:\n+ Clean, no mold, temp/humidity logged, metal-free policy.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
                     { id: "qam_7_2", code: "7.2", topic: "EXECUTION", question: "Are procedures/SOP for making samples properly carried out?\n執行: 是否正確執行製作樣品的程式 / SOP？", expectation: "Yes:\n+ Technicians trained on technical packages.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
@@ -588,7 +625,7 @@
                 ]
             },
             {
-                id: "sec_8", code: "8", name: "品質培訓", nameEn: "Quality Training",
+                id: "sec_8", code: "8", name: "品質培訓", nameEn: "Quality Training", weight: 1,
                 items: [
                     { id: "qam_8_1", code: "8.1", topic: "EXECUTION", question: "Is there a system containing adequate training topics for new and existing QCs?\n執行: 是否有系統為新 QC 和現有 QC 提供足夠的培訓項目？", expectation: "Yes:\n+ Assessment records and refresh training schedule available.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
                     { id: "qam_8_2", code: "8.2", topic: "EXECUTION", question: "Has the training program content been appropriately designed and planned?\n執行: 培訓項目的具體內容是否經過了恰当的設計和規劃？", expectation: "Yes:\n+ Technical standards, Q-KPI, QAR, CTQ, A0477 mold training included.", weight: 1, result: "PENDING", finding: "", actionPlan: "", pic: "", targetDate: "", photos: [] },
@@ -601,7 +638,7 @@
         // System State Store
         let auditData = {
             meta: {
-                factory: "EVK 鞋业一厂",
+                factory: "",
                 auditor: "QAM 稽核小组",
                 date: new Date().toISOString().split('T')[0],
                 line: "综合生产线"
@@ -638,37 +675,47 @@
         }
 
         function saveToLocalStorage() {
-            localStorage.setItem('QAM_AUDIT_STATE_FULL_V7', JSON.stringify(auditData));
+            localStorage.setItem('QAM_AUDIT_STATE_FULL_V8', JSON.stringify(auditData));
         }
 
         function loadFromLocalStorage() {
-            const saved = localStorage.getItem('QAM_AUDIT_STATE_FULL_V7');
-            if (saved) {
-                try {
-                    const parsed = JSON.parse(saved);
-                    if (parsed && parsed.sections && parsed.sections.length === initialQAMSections.length) {
-                        initialQAMSections.forEach(templateSec => {
-                            const savedSec = parsed.sections.find(s => s.id === templateSec.id);
-                            if (savedSec) {
-                                templateSec.items.forEach(templateItem => {
-                                    const savedItem = savedSec.items.find(i => i.id === templateItem.id);
-                                    if (savedItem) {
-                                        templateItem.result = savedItem.result || 'PENDING';
-                                        templateItem.finding = savedItem.finding || '';
-                                        templateItem.actionPlan = savedItem.actionPlan || '';
-                                        templateItem.pic = savedItem.pic || '';
-                                        templateItem.targetDate = savedItem.targetDate || '';
-                                        templateItem.photos = savedItem.photos || [];
-                                    }
-                                });
-                            }
-                        });
-                        auditData.meta = parsed.meta || auditData.meta;
-                        auditData.sections = initialQAMSections;
+            const saved = localStorage.getItem('QAM_AUDIT_STATE_FULL_V8');
+            if (!saved) return;
+            try {
+                const parsed = JSON.parse(saved);
+                if (!parsed || !Array.isArray(parsed.sections) || parsed.sections.length === 0) return;
+                // 以更新后的模板(initialQAMSections)为基底，逐模块按 id 合并已保存的评估结果
+                auditData.sections.forEach(templateSec => {
+                    const savedSec = parsed.sections.find(s => s.id === templateSec.id);
+                    if (!savedSec || !Array.isArray(savedSec.items)) return;
+                    // 1) 恢复模板中仍存在项的结果
+                    templateSec.items.forEach(templateItem => {
+                        const savedItem = savedSec.items.find(i => i.id === templateItem.id);
+                        if (!savedItem) return;
+                        templateItem.result = savedItem.result || 'PENDING';
+                        templateItem.finding = savedItem.finding || '';
+                        templateItem.actionPlan = savedItem.actionPlan || '';
+                        templateItem.pic = savedItem.pic || '';
+                        templateItem.targetDate = savedItem.targetDate || '';
+                        templateItem.photos = savedItem.photos || [];
+                        templateItem.photoRatios = savedItem.photoRatios || [];
+                    });
+                    // 2) 保留用户在题库管理中新增的、模板里已不存在的项
+                    savedSec.items.forEach(sItem => {
+                        if (!templateSec.items.some(ti => ti.id === sItem.id)) {
+                            templateSec.items.push(sItem);
+                        }
+                    });
+                });
+                // 3) 保留用户新增的、模板中不存在的模块
+                parsed.sections.forEach(savedSec => {
+                    if (!auditData.sections.some(t => t.id === savedSec.id)) {
+                        auditData.sections.push(savedSec);
                     }
-                } catch(e) {
-                    console.error("Failed to load local storage", e);
-                }
+                });
+                auditData.meta = parsed.meta || auditData.meta;
+            } catch(e) {
+                console.error("Failed to load local storage", e);
             }
         }
 
@@ -730,138 +777,156 @@
             renderActiveSection();
         }
 
+        function buildItemCard(sec, item) {
+            const card = document.createElement('div');
+            card.className = `bg-white rounded-2xl border p-5 shadow-sm transition space-y-4 ${
+                item.result === 'NO' ? 'border-rose-300 ring-1 ring-rose-200 bg-rose-50/10' :
+                item.result === 'YES' ? 'border-emerald-200' : 'border-slate-200'
+            }`;
+
+            card.innerHTML = `
+                <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                    <div class="space-y-1">
+                        <div class="flex items-center space-x-2">
+                            <span class="px-2 py-0.5 bg-slate-100 text-slate-800 text-xs font-bold rounded">${item.code}</span>
+                            <h4 class="font-bold text-slate-900 text-sm">${item.topic}</h4>
+                        </div>
+                        <p class="text-xs text-slate-600 whitespace-pre-line leading-relaxed font-medium">${item.question}</p>
+                    </div>
+
+                    <!-- Rating Action Buttons -->
+                    <div class="flex items-center space-x-1.5 flex-shrink-0">
+                        <button onclick="setItemResult('${sec.id}', '${item.id}', 'YES')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1 ${
+                            item.result === 'YES' ? 'bg-emerald-600 text-white shadow' : 'bg-slate-100 text-slate-600 hover:bg-emerald-50 hover:text-emerald-600'
+                        }">
+                            <i class="fa-solid fa-check"></i>
+                            <span>YES (符合)</span>
+                        </button>
+
+                        <button onclick="setItemResult('${sec.id}', '${item.id}', 'NO')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1 ${
+                            item.result === 'NO' ? 'bg-rose-600 text-white shadow' : 'bg-slate-100 text-slate-600 hover:bg-rose-50 hover:text-rose-600'
+                        }">
+                            <i class="fa-solid fa-xmark"></i>
+                            <span>NO (不符合)</span>
+                        </button>
+
+                        <button onclick="setItemResult('${sec.id}', '${item.id}', 'NA')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1 ${
+                            item.result === 'NA' ? 'bg-slate-700 text-white shadow' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                        }">
+                            <span>N/A</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Accordion: Standard Expectation details -->
+                <details class="group bg-slate-50 rounded-xl p-3 border border-slate-200 text-xs">
+                    <summary class="font-semibold text-slate-700 cursor-pointer flex justify-between items-center select-none">
+                        <span class="flex items-center space-x-1.5">
+                            <i class="fa-solid fa-book-open text-sky-600"></i>
+                            <span>点击展开：QAM 评估标准与期望 (EXPLANATION / Expectations)</span>
+                        </span>
+                        <i class="fa-solid fa-chevron-down group-open:rotate-180 transition-transform"></i>
+                    </summary>
+                    <div class="mt-2 pt-2 border-t border-slate-200 text-slate-600 whitespace-pre-line leading-relaxed font-mono text-[11px]">
+                        ${item.expectation}
+                    </div>
+                </details>
+
+                <!-- Dynamic Input Box for NO Result -->
+                ${item.result === 'NO' ? `
+                    <div class="bg-rose-50/60 rounded-xl p-4 border border-rose-200 space-y-3">
+                        <h5 class="text-xs font-bold text-rose-800 flex items-center space-x-1">
+                            <i class="fa-solid fa-circle-exclamation"></i>
+                            <span>不符合整改任务登记 (Defect & CAPA)</span>
+                        </h5>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-[11px] font-semibold text-slate-600 mb-1">问题描述 / Finding</label>
+                                <textarea rows="2" oninput="updateItemField('${sec.id}', '${item.id}', 'finding', this.value)" class="w-full bg-white border border-rose-200 rounded-lg p-2 text-xs focus:ring-2 focus:ring-rose-500 focus:outline-none" placeholder="详细描述发现的品质/防霉缺陷...">${item.finding || ''}</textarea>
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-semibold text-slate-600 mb-1">改善方案 / Action Plan</label>
+                                <textarea rows="2" oninput="updateItemField('${sec.id}', '${item.id}', 'actionPlan', this.value)" class="w-full bg-white border border-rose-200 rounded-lg p-2 text-xs focus:ring-2 focus:ring-rose-500 focus:outline-none" placeholder="描述矫正预防措施 (CAPA)...">${item.actionPlan || ''}</textarea>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div>
+                                <label class="block text-[11px] font-semibold text-slate-600 mb-1">责任人 / PIC</label>
+                                <input type="text" value="${item.pic || ''}" oninput="updateItemField('${sec.id}', '${item.id}', 'pic', this.value)" class="w-full bg-white border border-rose-200 rounded-lg px-2 py-1.5 text-xs" placeholder="责任部门/人员">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-semibold text-slate-600 mb-1">预计完成时间</label>
+                                <input type="date" value="${item.targetDate || ''}" oninput="updateItemField('${sec.id}', '${item.id}', 'targetDate', this.value)" class="w-full bg-white border border-rose-200 rounded-lg px-2 py-1.5 text-xs">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-semibold text-slate-600 mb-1">现场拍照 (Photo Attach)</label>
+                                <input type="file" accept="image/*" onchange="handlePhotoUpload('${sec.id}', '${item.id}', event)" class="w-full text-xs text-slate-500 file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-rose-100 file:text-rose-700 hover:file:bg-rose-200">
+                            </div>
+                        </div>
+
+                        ${item.photos && item.photos.length > 0 ? `
+                            <div class="flex space-x-2 pt-1">
+                                ${item.photos.map((img, idx) => `
+                                    <div class="relative group w-14 h-14 border rounded-lg overflow-hidden bg-slate-100">
+                                        <img src="${img}" class="w-full h-full object-cover">
+                                        <button onclick="removePhoto('${sec.id}', '${item.id}', ${idx})" class="absolute inset-0 bg-slate-900/60 text-white text-xs opacity-0 group-hover:opacity-100 flex items-center justify-center transition">&times; 删除</button>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : ''}
+                    </div>
+                ` : ''}
+            `;
+            return card;
+        }
+
         function renderActiveSection() {
             const container = document.getElementById('audit-items-container');
             container.innerHTML = '';
 
-            const section = auditData.sections.find(s => s.id === activeSectionId);
-            if (!section) return;
-
             const searchQuery = document.getElementById('search-input').value.toLowerCase();
+            const matchesStatus = item => activeFilterStatus === 'ALL' || item.result === activeFilterStatus;
+            const matchesSearch = item =>
+                item.code.toLowerCase().includes(searchQuery) ||
+                item.topic.toLowerCase().includes(searchQuery) ||
+                item.question.toLowerCase().includes(searchQuery);
 
-            const filteredItems = section.items.filter(item => {
-                const matchesStatus = activeFilterStatus === 'ALL' || item.result === activeFilterStatus;
-                const matchesSearch = item.code.toLowerCase().includes(searchQuery) || 
-                                      item.topic.toLowerCase().includes(searchQuery) ||
-                                      item.question.toLowerCase().includes(searchQuery);
-                return matchesStatus && matchesSearch;
-            });
+            const emptyState = `
+                <div class="bg-white rounded-2xl p-8 text-center text-slate-400 border border-slate-200">
+                    <i class="fa-solid fa-folder-open text-3xl mb-2"></i>
+                    <p class="text-xs">该筛选条件下暂无稽核项</p>
+                </div>
+            `;
 
-            if (filteredItems.length === 0) {
-                container.innerHTML = `
-                    <div class="bg-white rounded-2xl p-8 text-center text-slate-400 border border-slate-200">
-                        <i class="fa-solid fa-folder-open text-3xl mb-2"></i>
-                        <p class="text-xs">该筛选条件下暂无稽核项</p>
-                    </div>
-                `;
+            // 全局搜索模式：输入关键字后跨所有模块检索
+            if (searchQuery) {
+                let any = false;
+                auditData.sections.forEach(sec => {
+                    const hits = sec.items.filter(item => matchesStatus(item) && matchesSearch(item));
+                    if (hits.length === 0) return;
+                    any = true;
+                    const secHead = document.createElement('div');
+                    secHead.className = "text-xs font-bold text-slate-500 uppercase tracking-wider pt-2";
+                    secHead.textContent = sec.code + ' ' + sec.name;
+                    container.appendChild(secHead);
+                    hits.forEach(item => container.appendChild(buildItemCard(sec, item)));
+                });
+                if (!any) container.innerHTML = emptyState;
                 return;
             }
 
-            filteredItems.forEach(item => {
-                const card = document.createElement('div');
-                card.className = `bg-white rounded-2xl border p-5 shadow-sm transition space-y-4 ${
-                    item.result === 'NO' ? 'border-rose-300 ring-1 ring-rose-200 bg-rose-50/10' : 
-                    item.result === 'YES' ? 'border-emerald-200' : 'border-slate-200'
-                }`;
+            // 单模块模式：仅显示当前激活模块
+            const section = auditData.sections.find(s => s.id === activeSectionId);
+            if (!section) return;
 
-                card.innerHTML = `
-                    <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
-                        <div class="space-y-1">
-                            <div class="flex items-center space-x-2">
-                                <span class="px-2 py-0.5 bg-slate-100 text-slate-800 text-xs font-bold rounded">${item.code}</span>
-                                <h4 class="font-bold text-slate-900 text-sm">${item.topic}</h4>
-                            </div>
-                            <p class="text-xs text-slate-600 whitespace-pre-line leading-relaxed font-medium">${item.question}</p>
-                        </div>
-
-                        <!-- Rating Action Buttons -->
-                        <div class="flex items-center space-x-1.5 flex-shrink-0">
-                            <button onclick="setItemResult('${section.id}', '${item.id}', 'YES')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1 ${
-                                item.result === 'YES' ? 'bg-emerald-600 text-white shadow' : 'bg-slate-100 text-slate-600 hover:bg-emerald-50 hover:text-emerald-600'
-                            }">
-                                <i class="fa-solid fa-check"></i>
-                                <span>YES (符合)</span>
-                            </button>
-
-                            <button onclick="setItemResult('${section.id}', '${item.id}', 'NO')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1 ${
-                                item.result === 'NO' ? 'bg-rose-600 text-white shadow' : 'bg-slate-100 text-slate-600 hover:bg-rose-50 hover:text-rose-600'
-                            }">
-                                <i class="fa-solid fa-xmark"></i>
-                                <span>NO (不符合)</span>
-                            </button>
-
-                            <button onclick="setItemResult('${section.id}', '${item.id}', 'NA')" class="px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1 ${
-                                item.result === 'NA' ? 'bg-slate-700 text-white shadow' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                            }">
-                                <span>N/A</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Accordion: Standard Expectation details -->
-                    <details class="group bg-slate-50 rounded-xl p-3 border border-slate-200 text-xs">
-                        <summary class="font-semibold text-slate-700 cursor-pointer flex justify-between items-center select-none">
-                            <span class="flex items-center space-x-1.5">
-                                <i class="fa-solid fa-book-open text-sky-600"></i>
-                                <span>点击展开：QAM 评估标准与期望 (EXPLANATION / Expectations)</span>
-                            </span>
-                            <i class="fa-solid fa-chevron-down group-open:rotate-180 transition-transform"></i>
-                        </summary>
-                        <div class="mt-2 pt-2 border-t border-slate-200 text-slate-600 whitespace-pre-line leading-relaxed font-mono text-[11px]">
-                            ${item.expectation}
-                        </div>
-                    </details>
-
-                    <!-- Dynamic Input Box for NO Result -->
-                    ${item.result === 'NO' ? `
-                        <div class="bg-rose-50/60 rounded-xl p-4 border border-rose-200 space-y-3">
-                            <h5 class="text-xs font-bold text-rose-800 flex items-center space-x-1">
-                                <i class="fa-solid fa-circle-exclamation"></i>
-                                <span>不符合整改任务登记 (Defect & CAPA)</span>
-                            </h5>
-                            
-                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                <div>
-                                    <label class="block text-[11px] font-semibold text-slate-600 mb-1">问题描述 / Finding</label>
-                                    <textarea rows="2" oninput="updateItemField('${section.id}', '${item.id}', 'finding', this.value)" class="w-full bg-white border border-rose-200 rounded-lg p-2 text-xs focus:ring-2 focus:ring-rose-500 focus:outline-none" placeholder="详细描述发现的品质/防霉缺陷...">${item.finding || ''}</textarea>
-                                </div>
-                                <div>
-                                    <label class="block text-[11px] font-semibold text-slate-600 mb-1">改善方案 / Action Plan</label>
-                                    <textarea rows="2" oninput="updateItemField('${section.id}', '${item.id}', 'actionPlan', this.value)" class="w-full bg-white border border-rose-200 rounded-lg p-2 text-xs focus:ring-2 focus:ring-rose-500 focus:outline-none" placeholder="描述矫正预防措施 (CAPA)...">${item.actionPlan || ''}</textarea>
-                                </div>
-                            </div>
-
-                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                <div>
-                                    <label class="block text-[11px] font-semibold text-slate-600 mb-1">责任人 / PIC</label>
-                                    <input type="text" value="${item.pic || ''}" oninput="updateItemField('${section.id}', '${item.id}', 'pic', this.value)" class="w-full bg-white border border-rose-200 rounded-lg px-2 py-1.5 text-xs" placeholder="责任部门/人员">
-                                </div>
-                                <div>
-                                    <label class="block text-[11px] font-semibold text-slate-600 mb-1">预计完成时间</label>
-                                    <input type="date" value="${item.targetDate || ''}" oninput="updateItemField('${section.id}', '${item.id}', 'targetDate', this.value)" class="w-full bg-white border border-rose-200 rounded-lg px-2 py-1.5 text-xs">
-                                </div>
-                                <div>
-                                    <label class="block text-[11px] font-semibold text-slate-600 mb-1">现场拍照 (Photo Attach)</label>
-                                    <input type="file" accept="image/*" onchange="handlePhotoUpload('${section.id}', '${item.id}', event)" class="w-full text-xs text-slate-500 file:mr-2 file:py-1 file:px-2 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-rose-100 file:text-rose-700 hover:file:bg-rose-200">
-                                </div>
-                            </div>
-
-                            ${item.photos && item.photos.length > 0 ? `
-                                <div class="flex space-x-2 pt-1">
-                                    ${item.photos.map((img, idx) => `
-                                        <div class="relative group w-14 h-14 border rounded-lg overflow-hidden bg-slate-100">
-                                            <img src="${img}" class="w-full h-full object-cover">
-                                            <button onclick="removePhoto('${section.id}', '${item.id}', ${idx})" class="absolute inset-0 bg-slate-900/60 text-white text-xs opacity-0 group-hover:opacity-100 flex items-center justify-center transition">&times; 删除</button>
-                                        </div>
-                                    `).join('')}
-                                </div>
-                            ` : ''}
-                        </div>
-                    ` : ''}
-                `;
-
-                container.appendChild(card);
-            });
+            const filteredItems = section.items.filter(item => matchesStatus(item) && matchesSearch(item));
+            if (filteredItems.length === 0) {
+                container.innerHTML = emptyState;
+                return;
+            }
+            filteredItems.forEach(item => container.appendChild(buildItemCard(section, item)));
         }
 
         function setItemResult(secId, itemId, result) {
@@ -877,6 +942,23 @@
             updateDashboard();
         }
 
+        // 数据变更(录入描述/上传照片/删除照片)后刷新打印/PDF 布局与 CAPA 表，避免导出时内容过期
+        function refreshPrintLayout() {
+            let evalWeightSum = 0, yesWeightSum = 0;
+            auditData.sections.forEach(sec => {
+                const secW = sec.weight || 1;
+                let se = 0, sy = 0;
+                sec.items.forEach(it => {
+                    if (it.result === 'YES') { sy += secW; se += secW; yesWeightSum += secW; evalWeightSum += secW; }
+                    else if (it.result === 'NO') { se += secW; evalWeightSum += secW; }
+                });
+                sec.scorePct = se > 0 ? (sy / se) * 100 : 100;
+            });
+            const overall = evalWeightSum > 0 ? (yesWeightSum / evalWeightSum) * 100 : 100;
+            renderPrintLayout(overall);
+            renderCAPATable();
+        }
+
         function updateItemField(secId, itemId, field, val) {
             const sec = auditData.sections.find(s => s.id === secId);
             if (!sec) return;
@@ -885,10 +967,10 @@
 
             item[field] = val;
             saveToLocalStorage();
-            renderCAPATable();
+            refreshPrintLayout();
         }
 
-        // High Performance Mobile Photo Downsampling to prevent memory crash on iOS Safari
+        // High Performance Mobile Photo Downsampling to prevent memory crash on iOS Safari & ensure smooth Excel embedding
         function handlePhotoUpload(secId, itemId, event) {
             const file = event.target.files[0];
             if (!file) return;
@@ -901,8 +983,8 @@
                     let width = img.width;
                     let height = img.height;
 
-                    // Downscale image to max 600px width/height for iOS Safari / Excel embedding speed
-                    const max_size = 600;
+                    // Aggressive mobile downscaling (max 500px) to keep Base64 footprint lightweight (~20-40KB)
+                    const max_size = 500;
                     if (width > height) {
                         if (width > max_size) {
                             height *= max_size / width;
@@ -919,7 +1001,7 @@
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, width, height);
 
-                    const compressedBase64 = canvas.toDataURL('image/jpeg', 0.6);
+                    const compressedBase64 = canvas.toDataURL('image/jpeg', 0.5);
 
                     const sec = auditData.sections.find(s => s.id === secId);
                     if (!sec) return;
@@ -927,10 +1009,12 @@
                     if (!item) return;
 
                     if (!item.photos) item.photos = [];
+                    if (!item.photoRatios) item.photoRatios = [];
                     item.photos.push(compressedBase64);
+                    item.photoRatios.push(width / height); // 记录长宽比，导出 Excel 时按比例显示避免形变
                     saveToLocalStorage();
                     renderActiveSection();
-                    renderCAPATable();
+                    refreshPrintLayout();
                 };
                 img.src = e.target.result;
             };
@@ -944,9 +1028,10 @@
             if (!item) return;
 
             item.photos.splice(photoIdx, 1);
+            if (item.photoRatios) item.photoRatios.splice(photoIdx, 1);
             saveToLocalStorage();
             renderActiveSection();
-            renderCAPATable();
+            refreshPrintLayout();
         }
 
         function batchMarkAllYes() {
@@ -974,6 +1059,8 @@
             let yesWeightSum = 0;
 
             auditData.sections.forEach(sec => {
+                // 采用 Excel 分模块权重 (weight: 1/2/3)，而非逐项恒为 1
+                const secW = sec.weight || 1;
                 let secEvalSum = 0;
                 let secYesSum = 0;
 
@@ -981,14 +1068,14 @@
                     totalCount++;
                     if (item.result === 'YES') {
                         yesCount++;
-                        secYesSum += (item.weight || 1);
-                        secEvalSum += (item.weight || 1);
-                        yesWeightSum += (item.weight || 1);
-                        evalWeightSum += (item.weight || 1);
+                        secYesSum += secW;
+                        secEvalSum += secW;
+                        yesWeightSum += secW;
+                        evalWeightSum += secW;
                     } else if (item.result === 'NO') {
                         noCount++;
-                        secEvalSum += (item.weight || 1);
-                        evalWeightSum += (item.weight || 1);
+                        secEvalSum += secW;
+                        evalWeightSum += secW;
                     } else if (item.result === 'NA') {
                         naCount++;
                     }
@@ -1216,20 +1303,45 @@
             });
         }
 
+        function countPending() {
+            let n = 0;
+            auditData.sections.forEach(sec => sec.items.forEach(it => { if (it.result === 'PENDING') n++; }));
+            return n;
+        }
+
         async function exportToExcel() {
+            const pending = countPending();
+            if (pending > 0 && !confirm(`当前还有 ${pending} 项尚未评估（状态为「未稽核」）。\n\n确定仍要导出吗？建议先完成评估后再导出。`)) {
+                return;
+            }
             showToast("正在导出包含照片的 Excel 报告，请稍候...");
 
             try {
                 const workbook = new ExcelJS.Workbook();
                 
-                // Helper to clean Base64 data strings for ExcelJS & mobile compatibility
+                // Robust Base64 extraction
                 function getCleanBase64(dataUrl) {
                     if (!dataUrl) return null;
-                    return dataUrl.replace(/^data:image\/(png|jpeg|jpg|webp);base64,/, '');
+                    const commaIdx = dataUrl.indexOf(',');
+                    if (commaIdx !== -1) {
+                        return dataUrl.substring(commaIdx + 1).replace(/[\r\n]/g, '');
+                    }
+                    return dataUrl.replace(/[\r\n]/g, '');
                 }
+
                 function getImageExt(dataUrl) {
                     if (dataUrl && dataUrl.includes('image/png')) return 'png';
                     return 'jpeg';
+                }
+
+                // 按照片原始长宽比计算导出尺寸(限在 maxW×maxH 内)，避免被压成固定矩形导致形变
+                function photoExt(item, pIdx, maxW, maxH) {
+                    const r = (item.photoRatios && item.photoRatios[pIdx]) ? item.photoRatios[pIdx] : 1;
+                    let w = maxW;
+                    let h = maxW / r;
+                    if (h > maxH) { h = maxH; w = maxH * r; }
+                    if (!(w > 0) || !(h > 0)) { w = maxW; h = maxH; }
+                    return { width: Math.round(w), height: Math.round(h) };
                 }
 
                 // Worksheet 1: 完整稽核明细
@@ -1258,6 +1370,10 @@
 
                 for (const sec of auditData.sections) {
                     for (const item of sec.items) {
+                        const photoNote = item.photos && item.photos.length > 0 
+                            ? `📷 已嵌入照片 (${item.photos.length}张) [提示: 手机端请用WPS/Excel App查看]` 
+                            : '';
+
                         const row = ws1.addRow({
                             secCode: sec.code,
                             secName: sec.name,
@@ -1270,7 +1386,7 @@
                             actionPlan: item.actionPlan || '',
                             pic: item.pic || '',
                             targetDate: item.targetDate || '',
-                            photoCol: ''
+                            photoCol: photoNote
                         });
 
                         row.alignment = { vertical: 'top', wrapText: true };
@@ -1278,7 +1394,6 @@
                         if (item.photos && item.photos.length > 0) {
                             row.height = 85;
                             
-                            // Insert photos side by side in the photo cell with iOS mobile anchors
                             for (let pIdx = 0; pIdx < item.photos.length; pIdx++) {
                                 const photoBase64 = item.photos[pIdx];
                                 const cleanB64 = getCleanBase64(photoBase64);
@@ -1292,11 +1407,11 @@
 
                                     ws1.addImage(imageId, {
                                         tl: { col: 11 + (pIdx * 0.75), row: rowIndex - 1 + 0.05 },
-                                        ext: { width: 90, height: 75 },
+                                        ext: photoExt(item, pIdx, 90, 75),
                                         editAs: 'oneCell'
                                     });
                                 } catch(imgErr) {
-                                    console.warn("Failed to embed image into Excel:", imgErr);
+                                    console.warn("Failed to embed image into Excel ws1:", imgErr);
                                 }
                             }
                         } else {
@@ -1327,6 +1442,10 @@
                 auditData.sections.forEach(sec => {
                     sec.items.forEach(item => {
                         if (item.result === 'NO') {
+                            const photoNote = item.photos && item.photos.length > 0 
+                                ? `📷 已嵌入照片 (${item.photos.length}张)` 
+                                : '';
+
                             const cRow = ws2.addRow({
                                 itemCode: item.code,
                                 secName: sec.name,
@@ -1334,7 +1453,7 @@
                                 actionPlan: item.actionPlan || '未填写',
                                 pic: item.pic || '-',
                                 targetDate: item.targetDate || '-',
-                                photoCol: ''
+                                photoCol: photoNote
                             });
 
                             cRow.alignment = { vertical: 'top', wrapText: true };
@@ -1355,11 +1474,11 @@
 
                                         ws2.addImage(imageId, {
                                             tl: { col: 6 + (pIdx * 0.75), row: capaRowIndex - 1 + 0.05 },
-                                            ext: { width: 90, height: 75 },
+                                            ext: photoExt(item, pIdx, 90, 75),
                                             editAs: 'oneCell'
                                         });
                                     } catch(imgErr) {
-                                        console.warn("Failed to embed CAPA image into Excel:", imgErr);
+                                        console.warn("Failed to embed CAPA image into Excel ws2:", imgErr);
                                     }
                                 }
                             } else {
@@ -1371,17 +1490,47 @@
                     });
                 });
 
-                // Write Buffer & Trigger Save using FileSaver
+                // Write Buffer & Trigger Save with Mobile Safari compatibility
                 const buffer = await workbook.xlsx.writeBuffer();
                 const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
                 const fileName = `QAM_Audit_Report_${auditData.meta.factory}_${auditData.meta.date}.xlsx`;
-                saveAs(blob, fileName);
+
+                const isMobileIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+                if (isMobileIOS) {
+                    const reader = new FileReader();
+                    reader.onloadend = function() {
+                        const a = document.createElement('a');
+                        a.href = reader.result;
+                        a.download = fileName;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                    };
+                    reader.readAsDataURL(blob);
+                } else {
+                    saveAs(blob, fileName);
+                }
 
                 showToast("包含照片的 Excel 报告已成功导出！");
+
+                // Display explicit mobile viewing modal / notice if on mobile phone
+                if (/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+                    setTimeout(() => {
+                        showMobileExcelNoticeModal();
+                    }, 800);
+                }
             } catch(e) {
                 console.error("Excel Export Failed", e);
                 alert("导出失败，请检查数据格式: " + e.message);
             }
+        }
+
+        function showMobileExcelNoticeModal() {
+            document.getElementById('mobile-excel-notice-modal').classList.remove('hidden');
+        }
+
+        function closeMobileExcelModal() {
+            document.getElementById('mobile-excel-notice-modal').classList.add('hidden');
         }
 
         function triggerPDFExport() {
@@ -1393,7 +1542,12 @@
         }
 
         function executePDFPrint() {
+            const pending = countPending();
+            if (pending > 0 && !confirm(`当前还有 ${pending} 项尚未评估（状态为「未稽核」）。\n\n确定仍要导出 PDF 吗？`)) {
+                return;
+            }
             closePDFModal();
+            refreshPrintLayout(); // 打印前强制刷新，确保照片与描述为最新
             window.print();
         }
 
@@ -1461,6 +1615,85 @@
                 closeEditorModal();
                 showToast("稽核项编辑成功！");
             }
+        }
+
+        function nextItemCode(sec) {
+            let max = 0;
+            (sec.items || []).forEach(it => {
+                const parts = String(it.code).split('.');
+                const last = parseInt(parts[parts.length - 1], 10);
+                if (!isNaN(last) && last > max) max = last;
+            });
+            return sec.code + '.' + (max + 1);
+        }
+
+        function newEditorItem() {
+            const secId = document.getElementById('editor-section-select').value;
+            const sec = auditData.sections.find(s => s.id === secId);
+            if (!sec) return;
+            const code = nextItemCode(sec);
+            const newId = 'qam_new_' + sec.id + '_' + code.replace(/\./g, '_');
+            sec.items.push({
+                id: newId, code: code, topic: '', question: '',
+                expectation: '', weight: sec.weight || 1,
+                result: 'PENDING', finding: '', actionPlan: '', pic: '', targetDate: '', photos: []
+            });
+            loadEditorItems();
+            document.getElementById('editor-item-select').value = newId;
+            showToast('已新建稽核项 ' + code + '，请填写后点「保存修改」');
+        }
+
+        function deleteEditorItem() {
+            const secId = document.getElementById('editor-section-select').value;
+            const itemId = document.getElementById('editor-item-select').value;
+            const sec = auditData.sections.find(s => s.id === secId);
+            if (!sec || !itemId) return;
+            const item = sec.items.find(i => i.id === itemId);
+            if (!item) return;
+            if (!confirm('确定要删除稽核项 ' + item.code + ' (' + (item.topic || '无主题') + ') 吗？此操作不可撤销。')) return;
+            sec.items = sec.items.filter(i => i.id !== itemId);
+            saveToLocalStorage();
+            loadEditorItems();
+            renderActiveSection();
+            renderTabs();
+            updateDashboard();
+            showToast('已删除稽核项 ' + item.code);
+        }
+
+        function newEditorSection() {
+            const code = prompt('请输入新模块编号 (如: 9)：');
+            if (code === null || code.trim() === '') return;
+            const name = prompt('请输入新模块名称 (如: 新模块)：');
+            if (name === null || name.trim() === '') return;
+            const sid = 'sec_new_' + Date.now();
+            auditData.sections.push({
+                id: sid, code: code.trim(), name: name.trim(), nameEn: name.trim(),
+                weight: 1, items: []
+            });
+            saveToLocalStorage();
+            setupEditorOptions();
+            document.getElementById('editor-section-select').value = sid;
+            loadEditorItems();
+            renderTabs();
+            updateDashboard();
+            showToast('已新增模块 ' + code.trim() + ' ' + name.trim() + '，请用「新建稽核项」添加内容');
+        }
+
+        function deleteEditorSection() {
+            const secId = document.getElementById('editor-section-select').value;
+            const sec = auditData.sections.find(s => s.id === secId);
+            if (!sec) return;
+            if (!confirm('确定要删除整个模块 ' + sec.code + ' ' + sec.name + '（含其下 ' + sec.items.length + ' 个稽核项）吗？此操作不可撤销。')) return;
+            auditData.sections = auditData.sections.filter(s => s.id !== secId);
+            saveToLocalStorage();
+            setupEditorOptions();
+            renderTabs();
+            updateDashboard();
+            if (auditData.sections.length) {
+                document.getElementById('editor-section-select').value = auditData.sections[0].id;
+                loadEditorItems();
+            }
+            showToast('已删除模块');
         }
 
         function showToast(msg) {
