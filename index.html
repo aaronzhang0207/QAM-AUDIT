@@ -1125,6 +1125,21 @@ const initialQAMSections = [
                 });
             });
         }
+        // ===== 子项标题(topic) 三语字典 =====
+        const TOPIC_MAP = {
+            'FACILITY CONDITION':                { en: 'FACILITY CONDITION',           cn: '設施條件',      kh: 'លក្ខខណ្ឌបរិការ' },
+            'EXECUTION':                         { en: 'EXECUTION',                    cn: '執行',          kh: 'ការអនុវត្ត' },
+            'MACHINES/TOOLS':                    { en: 'MACHINES/TOOLS',               cn: '機器/工具',     kh: 'ម៉ាស៊ីន/ឧបករណ៍' },
+            'MACHINE/TOOLS':                     { en: 'MACHINES/TOOLS',               cn: '機器/工具',     kh: 'ម៉ាស៊ីន/ឧបករណ៍' },
+            'INSPECTION':                        { en: 'INSPECTION',                   cn: '檢驗',          kh: 'ការត្រួតពិនិត្យ' },
+            'ACTION PLAN':                       { en: 'ACTION PLAN',                  cn: '改善行動',      kh: 'ផែនការសកម្មភាព' },
+            'IDENTIFICATION & TRACEBILITY':      { en: 'IDENTIFICATION & TRACEABILITY',cn: '識別與追溯性',  kh: 'ការកំណត់អត្តសញ្ញាណ និងការតាមដាន' },
+            'IDENTIFICATION & TRACEABILITY':     { en: 'IDENTIFICATION & TRACEABILITY',cn: '識別與追溯性',  kh: 'ការកំណត់អត្តសញ្ញាណ និងការតាមដាន' },
+            'QC INSPECTION':                     { en: 'QC INSPECTION',                cn: 'QC 檢驗',       kh: 'ការត្រួតពិនិត្យ QC' },
+            'TRACEABILITY':                      { en: 'TRACEABILITY',                 cn: '可追溯性',      kh: 'ការតាមដាន' },
+            'INSPECTION EQUIPMENT / TOOLS':      { en: 'INSPECTION EQUIPMENT / TOOLS', cn: '檢驗設備/工具', kh: 'ឧបករណ៍ត្រួតពិនិត្យ' }
+        };
+
         __applyQAMKhmer(initialQAMSections);
         applyTopics(initialQAMSections);
 
@@ -1204,21 +1219,6 @@ const initialQAMSections = [
         function khFont() {
             return currentLanguage === 'kh' ? ' style="font-family: \'Noto Sans Khmer\', sans-serif;"' : '';
         }
-
-        // ===== 子项标题(topic) 三语字典 =====
-        const TOPIC_MAP = {
-            'FACILITY CONDITION':                { en: 'FACILITY CONDITION',           cn: '設施條件',      kh: 'លក្ខខណ្ឌបរិការ' },
-            'EXECUTION':                         { en: 'EXECUTION',                    cn: '執行',          kh: 'ការអនុវត្ត' },
-            'MACHINES/TOOLS':                    { en: 'MACHINES/TOOLS',               cn: '機器/工具',     kh: 'ម៉ាស៊ីន/ឧបករណ៍' },
-            'MACHINE/TOOLS':                     { en: 'MACHINES/TOOLS',               cn: '機器/工具',     kh: 'ម៉ាស៊ីន/ឧបករណ៍' },
-            'INSPECTION':                        { en: 'INSPECTION',                   cn: '檢驗',          kh: 'ការត្រួតពិនិត្យ' },
-            'ACTION PLAN':                       { en: 'ACTION PLAN',                  cn: '改善行動',      kh: 'ផែនការសកម្មភាព' },
-            'IDENTIFICATION & TRACEBILITY':      { en: 'IDENTIFICATION & TRACEABILITY',cn: '識別與追溯性',  kh: 'ការកំណត់អត្តសញ្ញាណ និងការតាមដាន' },
-            'IDENTIFICATION & TRACEABILITY':     { en: 'IDENTIFICATION & TRACEABILITY',cn: '識別與追溯性',  kh: 'ការកំណត់អត្តសញ្ញាណ និងការតាមដាន' },
-            'QC INSPECTION':                     { en: 'QC INSPECTION',                cn: 'QC 檢驗',       kh: 'ការត្រួតពិនិត្យ QC' },
-            'TRACEABILITY':                      { en: 'TRACEABILITY',                 cn: '可追溯性',      kh: 'ការតាមដាន' },
-            'INSPECTION EQUIPMENT / TOOLS':      { en: 'INSPECTION EQUIPMENT / TOOLS', cn: '檢驗設備/工具', kh: 'ឧបករណ៍ត្រួតពិនិត្យ' }
-        };
 
         // 为每个子项填充 topicCn / topicKh（并归一化 topic 英文拼写）
         function applyTopics(sections) {
